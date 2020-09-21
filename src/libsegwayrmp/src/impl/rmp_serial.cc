@@ -8,6 +8,7 @@ using namespace segwayrmp;
 
 SerialRMPIO::SerialRMPIO() : configured(false), baudrate(460800), port("") {
   this->connected = false;
+  printf("Were made");
 }
 
 SerialRMPIO::~SerialRMPIO() {

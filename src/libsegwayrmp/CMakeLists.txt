@@ -26,8 +26,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 
 # Set the source files, headers, and link libraries
-set(SEGWAYRMP_SRCS src/segwayrmp.cc src/impl/rmp_io.cc src/impl/rmp_serial.cc)
-set(SEGWAYRMP_HEADERS include/segwayrmp/segwayrmp.h)
+set(SEGWAYRMP_SRCS src/segwayrmp.cc src/impl/rmp_io.cc)
+set(SEGWAYRMP_HEADERS include/segwayrmp/segwayrmp.h )
 set(SEGWAYRMP_LINK_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY})
 
 # Configure Serial support

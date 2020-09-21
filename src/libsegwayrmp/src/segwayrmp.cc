@@ -5,9 +5,6 @@
 #include <segwayrmp/impl/rmp_io.h>
 #include <segwayrmp/impl/rmp_ftd2xx.h>
 #define SEGWAYRMP_USE_SERIAL
-#if defined(SEGWAYRMP_USE_SERIAL)
-#include <segwayrmp/impl/rmp_serial.h>
-#endif
 
 inline void
 defaultSegwayStatusCallback(segwayrmp::SegwayStatus::Ptr segway_status)
@@ -157,28 +154,10 @@ SegwayRMP::SegwayRMP(InterfaceType interface_type,
   handle_exception_(defaultExceptionCallback)
 {
   this->segway_status_ = SegwayStatus::Ptr(new SegwayStatus());
-  this->interface_type_ = interface_type;
-  switch (interface_type) {
-    case can:
-      RMP_THROW_MSG(ConfigurationException, "CAN is not supported currently");
-      break;
-    case usb:
-      this->rmp_io_ = new FTD2XXRMPIO();
-      break;
-    case serial:
-      this->rmp_io_ = new SerialRMPIO();
-      break;
-    case ethernet:
-      RMP_THROW_MSG(ConfigurationException, "Ethernet is not currently "
-        "supported");
-      break;
-    case no_interface:
-      // do nothing
-      break;
-    default:
-      RMP_THROW_MSG(ConfigurationException, "Invalid InterfaceType specified");
-      break;
-  }
+  this->interface_type_ = InterfaceType::serial;
+
+  std::cout << "Nooooooo";
+  this->rmp_io_ = new SerialRMPIO();
 
   // Set the constants based on the segway type
   this->SetConstantsBySegwayType_(this->segway_rmp_type_);
@@ -209,46 +188,6 @@ void SegwayRMP::configureSerial(std::string port, int baudrate)
   } else {
     RMP_THROW_MSG(ConfigurationException, "configureSerial: Cannot configure "
       "serial when the InterfaceType is not serial.");
-  }
-}
-
-void SegwayRMP::configureUSBBySerial(std::string serial_number, int baudrate)
-{
-  if (this->interface_type_ == usb) {
-    FTD2XXRMPIO *ftd2xx_rmp = (FTD2XXRMPIO *)(this->rmp_io_);
-    ftd2xx_rmp->configureUSBBySerial(serial_number, baudrate);
-  } else {
-    RMP_THROW_MSG(ConfigurationException, "configureUSBBySerial: Cannot "
-      "configure ftd2xx usb when the InterfaceType is not usb.");
-  }
-}
-
-void SegwayRMP::configureUSBByDescription(std::string description,
-                                          int baudrate)
-{
-  std::cout << "yay0 \n";
-  //RMP_THROW_MSG(ConfigurationException, "Watss" );
-  if (this->interface_type_ == usb) {
-std::cout << "yay1 \n";
-    FTD2XXRMPIO *ftd2xx_rmp = (FTD2XXRMPIO *)(this->rmp_io_);
-    std::cout << description << "\n";
-    ftd2xx_rmp->configureUSBByDescription(description, baudrate);
-  } else {
-    std::cout << "yay2 \n";
-    RMP_THROW_MSG(ConfigurationException, "configureUSBByDescription: "
-      "Cannot configure ftd2xx usb when the InterfaceType is not usb.");
-  }
-  std::cout << "yay3\n";
-}
-
-void SegwayRMP::configureUSBByIndex(int device_index, int baudrate)
-{
-  if (this->interface_type_ == usb) {
-    FTD2XXRMPIO *ftd2xx_rmp = (FTD2XXRMPIO *)(this->rmp_io_);
-    ftd2xx_rmp->configureUSBByIndex(device_index, baudrate);
-  } else {
-    RMP_THROW_MSG(ConfigurationException, "configureUSBByIndex: "
-      "Cannot configure ftd2xx usb when the InterfaceType is not usb.");
   }
 }
 

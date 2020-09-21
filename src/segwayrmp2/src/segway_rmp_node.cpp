@@ -140,7 +140,7 @@ public:
         if (rclcpp::ok() && this->connected) {
             RCLCPP_INFO(this->get_logger(),"Segway RMP Ready.");
             while (rclcpp::ok() && this->connected) {
-                rclcpp::sleep_for(std::chrono::seconds(1));
+                rclcpp::spin_some(this->get_node_base_interface());
             }
         }
         if (rclcpp::ok()) { // Error not shutdown
@@ -156,7 +156,7 @@ public:
      */
     void keepAliveCallback() {
 
-        std::cout << "We ran :D";
+        std::cout << ("Running alive");
 
         if (!this->connected || this->reset_odometry)
           return;
@@ -368,7 +368,7 @@ public:
      */
     void motor_timeoutCallback() {
         boost::mutex::scoped_lock lock(m_mutex);
-        //RCLCPP_INFO(this->get_logger(),"Motor command timeout!  Setting target linear and angular velocities to be zero.");
+        RCLCPP_INFO(this->get_logger(),"Motor command timeout!  Setting target linear and angular velocities to be zero.");
         this->target_linear_vel = 0.0;
         this->target_angular_vel = 0.0;
     }
@@ -435,37 +435,21 @@ private:
         std::stringstream ss;
         ss << "Connecting to Segway RMP via ";
         this->segway_rmp = new segwayrmp::SegwayRMP(this->interface_type, this->segway_rmp_type);
-        RCLCPP_INFO(get_logger(), "DatDebug");
-        if (this->interface_type_str == "serial") {
-            ss << "serial on serial port: " << this->serial_port;
-            this->segway_rmp->configureSerial(this->serial_port);
-        } else if (this->interface_type_str == "usb") {
-            ss << "usb ";
-            if (this->usb_selector == "serial_number") {
-                ss << "identified by the device serial number: " << this->serial_number;
-                this->segway_rmp->configureUSBBySerial(this->serial_number);
-            }
-            if (this->usb_selector == "description") {
-                ss << "identified by the device description: " << this->usb_description;
-                RCLCPP_INFO(get_logger(), "DatDebug2");
-                this->segway_rmp->configureUSBByDescription(this->usb_description, 460800);
-            }
-            if (this->usb_selector == "index") {
-                ss << "identified by the device index: " << this->usb_index;
-                this->segway_rmp->configureUSBByIndex(this->usb_index);
-            }
-        }
+
+        ss << "serial on serial port: " << this->serial_port;
+        this->segway_rmp->configureSerial(this->serial_port);
+
         RCLCPP_INFO(this->get_logger(),"%s", ss.str().c_str());
         
         // Set the instance variable
         segwayrmp_node_instance = this;
         
+
         // Set callbacks for segway data and messages
         this->segway_rmp->setStatusCallback(std::bind(&SegwayRMPNode::handleStatusWrapper, this, std::placeholders::_1));
         this->segway_rmp->setLogMsgCallback("debug", std::bind(&SegwayRMPNode::handleDebugMessages, this, std::placeholders::_1));
         this->segway_rmp->setLogMsgCallback("info", std::bind(&SegwayRMPNode::handleInfoMessages, this, std::placeholders::_1));
         this->segway_rmp->setLogMsgCallback("error", std::bind(&SegwayRMPNode::handleErrorMessages, this, std::placeholders::_1));
-
     }
     
     int getParameters() {
@@ -547,11 +531,15 @@ private:
 
         // Get the linear acceleration limits in m/s^2.  Zero means infinite.
         this->get_parameter("linear_pos_accel_limit", this->linear_pos_accel_limit);//, 0.0);
+        this->linear_pos_accel_limit = 0.1;
         this->get_parameter("linear_neg_accel_limit", this->linear_neg_accel_limit);//, 0.0);
+        this->linear_neg_accel_limit = 0.1;
 
         // Get the angular acceleration limits in deg/s^2.  Zero means infinite.
         this->get_parameter("angular_pos_accel_limit", this->angular_pos_accel_limit);//, 0.0);
+        this->angular_pos_accel_limit = 0.1;
         this->get_parameter("angular_neg_accel_limit", this->angular_neg_accel_limit);//, 0.0);
+        this->angular_neg_accel_limit = 0.1;
         
         // Check for valid acceleration limits
         if (this->linear_pos_accel_limit < 0) {
@@ -581,7 +569,9 @@ private:
 
         // Get velocity limits. Zero means no limit
         this->get_parameter("max_linear_vel", this->max_linear_vel);//, 0.0);
+        this->max_linear_vel = 1;
         this->get_parameter("max_angular_vel", this->max_angular_vel);//, 0.0);
+        this->max_angular_vel = 1;
         
         if (this->max_linear_vel < 0) {
             RCLCPP_ERROR(this->get_logger(),"Invalid max linear velocity limit of %f (must be non-negative).",
@@ -610,11 +600,15 @@ private:
 
         // Get the scale correction parameters for odometry
         this->get_parameter("linear_odom_scale", this->linear_odom_scale);//, 1.0);
+        this->linear_odom_scale = 1.0;
         this->get_parameter("angular_odom_scale", this->angular_odom_scale);//, 1.0);
+        this->angular_odom_scale = 1.0;
 
         // Check if a software odometry reset is required
         this->get_parameter("reset_odometry", this->reset_odometry);//, false);
+        this->reset_odometry = false;
         this->get_parameter("odometry_reset_duration", this->odometry_reset_duration);//, 1.0);
+        this->odometry_reset_duration = 1.0;
     
         return 0;
     }
