@@ -22,9 +22,7 @@ void SerialRMPIO::configure(std::string port, int baudrate) {
 }
 
 void SerialRMPIO::connect() {
-
-
-  if(tcgetattr(serial_port, &tty) != 0) {
+  if (tcgetattr(serial_port, &tty) != 0) {
     printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
   }
 
