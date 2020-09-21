@@ -33,15 +33,6 @@ install(
   DESTINATION share/libsegwayrmp/
 )
 
-# For now, enable installing the FTDI library on linux
-if(UNIX AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-  install(
-    FILES lib/libftd2xx.a
-    DESTINATION lib/
-  )
-  set(segwayrmp_ADDITIONAL_LIBRARIES "-ldl")
-endif(UNIX AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
 # Enable pkg-configuration file generation for linux
 if(UNIX AND ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   configure_file ("cmake/libsegwayrmp.pc.in" "cmake/libsegwayrmp.pc" @ONLY)

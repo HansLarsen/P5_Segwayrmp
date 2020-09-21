@@ -47,12 +47,7 @@
 #include <boost/function.hpp>
 #include <boost/thread.hpp>
 
-/* Setup (u)int*_t types if not UNIX. */
-#if defined(_WIN32) && !defined(__MINGW32__)
-  typedef unsigned int uint32_t;
-#else
 # include <stdint.h>
-#endif
 
 // ClassName - The name of the exception class
 // Prefix    - The common prefix
@@ -356,44 +351,6 @@ public:
    */
   void
   configureSerial(std::string port, int baudrate = 460800);
-
-  /*!
-   * Configures the FTD2XX usb interface, if the library is built with usb
-   * support, otherwise throws ConfigurationException.
-   * 
-   * \param serial_number Defines which usb port to connect to based on the
-   *  devices serial number.
-   * \param baudrate Defines the speed of the usb port in baud's.  Defaults
-   *  to 460800 (recommended).
-   */
-  void
-  configureUSBBySerial(std::string serial_number,
-                       int baudrate = 460800);
-
-  /*!
-   * Configures the FTD2XX usb interface, if the library is built with usb
-   * support, otherwise throws ConfigurationException.
-   * 
-   * \param description Defines which usb port to connect to based on the
-   *  devices description.
-   * \param baudrate Defines the speed of the usb port in baud's.  Defaults
-   *  to 460800 (recommended).
-   */
-  void
-  configureUSBByDescription(std::string description, int baudrate = 460800);
-
-  /*!
-   * Configures the FTD2XX usb interface, if the library is built with usb
-   * support, otherwise throws ConfigurationException.
-   * 
-   * \param device_index Defines which usb port to connect to based on the
-   *  devices index.
-   *              Note: This is indexed by all ftd2xx devices on the system.
-   * \param baudrate Defines the speed of the usb port in baud's.  Defaults
-   *  to 460800 (recommended).
-   */
-  void
-  configureUSBByIndex(int device_index, int baudrate = 460800);
 
   /*!
    * Connects to the Segway. Ensure it has been configured first.

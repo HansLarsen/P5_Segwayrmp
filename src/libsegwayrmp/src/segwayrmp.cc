@@ -3,7 +3,6 @@
 
 #include <segwayrmp/segwayrmp.h>
 #include <segwayrmp/impl/rmp_io.h>
-#include <segwayrmp/impl/rmp_ftd2xx.h>
 #define SEGWAYRMP_USE_SERIAL
 
 inline void
@@ -169,13 +168,7 @@ SegwayRMP::~SegwayRMP()
     this->StopReadingContinuously_();
   }
   if (this->interface_type_ == serial) {
-#if defined(SEGWAYRMP_USE_SERIAL)
     SerialRMPIO * ptr = (SerialRMPIO *)(this->rmp_io_);
-    delete ptr;
-#endif
-  }
-  if (this->interface_type_ == usb) {
-    FTD2XXRMPIO * ptr = (FTD2XXRMPIO *)(this->rmp_io_);
     delete ptr;
   }
 }
@@ -194,9 +187,7 @@ void SegwayRMP::configureSerial(std::string port, int baudrate)
 void SegwayRMP::connect(bool reset_integrators)
 {
   // Connect to the interface
-  std::cout << "yay4\n";
   this->rmp_io_->connect();
-  std::cout << "yay5\n";
   this->connected_ = true;
 
   if (reset_integrators) {

@@ -54,7 +54,6 @@ include_directories(${Boost_INCLUDE_DIRS})
 set(SEGWAYRMP_LINK_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY})
 
 list(APPEND SEGWAYRMP_LINK_LIBS
-      /home/hax/rosws/src/libsegwayrmp/ftd2xx/linux/x64/libftd2xx.a
       dl
       rt
       pthread

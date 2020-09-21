@@ -33,9 +33,6 @@ set(SEGWAYRMP_LINK_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY})
 # Configure Serial support
 include(cmake/segwayrmp_serial.cmake)
 
-# Configure FTD2XX support
-include(cmake/segwayrmp_ftd2xx.cmake)
-
 # Configure Graphical User Interface
 include(cmake/segwayrmp_gui.cmake)
 
