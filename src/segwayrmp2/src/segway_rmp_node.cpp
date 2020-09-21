@@ -116,7 +116,7 @@ public:
         this->keep_alive_timer = create_wall_timer(std::chrono::milliseconds(50), 
             std::bind(&SegwayRMPNode::keepAliveCallback, this));
         
-	this->odometry_reset_start_time = this->now();
+        this->odometry_reset_start_time = this->now();
 
         this->connected = false;
         while (rclcpp::ok())  {
@@ -155,6 +155,8 @@ public:
      * command to the Segway RMP.
      */
     void keepAliveCallback() {
+
+        std::cout << "We ran :D";
 
         if (!this->connected || this->reset_odometry)
           return;
