@@ -118,6 +118,8 @@ public:
         
         this->odometry_reset_start_time = this->now();
 
+        RCLCPP_INFO(this->get_logger(), "Hi6");
+
         this->connected = false;
         while (rclcpp::ok())  {
             try {
@@ -140,10 +142,12 @@ public:
         if (rclcpp::ok() && this->connected) {
             RCLCPP_INFO(this->get_logger(),"Segway RMP Ready.");
             while (rclcpp::ok() && this->connected) {
+                rclcpp::sleep_for(std::chrono::milliseconds(2));
                 rclcpp::spin_some(this->get_node_base_interface());
             }
         }
-        if (rclcpp::ok()) { // Error not shutdown
+        RCLCPP_INFO(this->get_logger(), "Not Ready");
+        if (rclcpp::ok()  && this->connected) { // Error not shutdown
             return true;
         } else {         // Shutdown
             return false;
@@ -156,7 +160,7 @@ public:
      */
     void keepAliveCallback() {
 
-        std::cout << ("Running alive");
+        RCLCPP_INFO(this->get_logger(), "Hi");
 
         if (!this->connected || this->reset_odometry)
           return;
@@ -204,14 +208,20 @@ public:
             //if (this->linear_vel == 0 || this->angular_vel == 0) {
             //    RCLCPP_INFO(this->get_logger(),"Sending Segway Command: l=%f a=%f", this->linear_vel, this->angular_vel);
             //}
+
+            RCLCPP_INFO(this->get_logger(), "Hi2");
             try {
                 this->segway_rmp->move(this->linear_vel, this->angular_vel);
             } catch (std::exception& e) {
+
+                RCLCPP_INFO(this->get_logger(), "Hi7");
                 std::string e_msg(e.what());
                 RCLCPP_ERROR(this->get_logger(),"Error commanding Segway RMP: %s", e_msg.c_str());
                 this->connected = false;
                 this->disconnect();
             }
+
+            RCLCPP_INFO(this->get_logger(), "Hi3");
         }
     }
     
@@ -410,7 +420,7 @@ private:
     // Functions
     void setupROSComms() {
         // Subscribe to command velocities
-        cmd_velSubscriber = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", 1000, std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
+        cmd_velSubscriber = this->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", 5, std::bind(&SegwayRMPNode::cmd_velCallback, this, std::placeholders::_1));
         //this->cmd_velSubscriber = n->subscribe("cmd_vel", 1000, &SegwayRMPNode::cmd_velCallback, this);
         // Advertise the SegwayStatusStamped
         //segway_status_pub = this->create_publisher<segwayinterfacemsgs::msg::SegwayStatusStamped>("segway_status", 1000);
@@ -460,43 +470,13 @@ private:
         //this->get_parameter("interface_type", this->interface_type_str); //, std::string("serial"));
         this->interface_type_str = "serial";
         std::cout << this->interface_type_str;
-        // Get Configurations based on Interface Type
-        if (this->interface_type_str == "serial") {
-            this->interface_type = segwayrmp::serial;
-            //this->get_parameter("serial_port", this->serial_port); //, std::string("/dev/ttyUSB0"));
-            serial_port = "/dev/ttyUSB0";
-        } else if (this->interface_type_str == "usb") {
-            this->interface_type = segwayrmp::usb;
-            //this->get_parameter("usb_selector", this->usb_selector);//, std::string("index"));
-            this->usb_selector = "serial_number";
-            if (this->usb_selector == "index") {
-                this->usb_index = 0;
-                //this->get_parameter("usb_index", this->usb_index);//, 0);
-            } else if (this->usb_selector == "serial_number") {
-                //this->get_parameter("usb_serial_number", this->serial_number);//, std::string("00000000"));
-                this->serial_number = "00000239";
-                if (this->serial_number == std::string("00000000")) {
-                    RCLCPP_WARN(this->get_logger(),"The serial_number parameter is set to the default 00000000, which shouldn't work.");
-                }
-            } else if (this->usb_selector == "description") {
-                usb_description = "Robotic Mobile Platform";
-                usb_description = "Future Technology Devices International, Ltd Segway Robotic Mobility Platforms 200";
-                //this->get_parameter("usb_description", this->serial_number);//, std::string("Robotic Mobile Platform"));
-            } else {
-                RCLCPP_ERROR(this->get_logger(),
-                    "Invalid USB selector: %s, valid types are 'index', 'serial_number', and 'description'.", 
-                    this->usb_selector.c_str());
-                return 1;
-            }
-        } else {
-            RCLCPP_ERROR(this->get_logger(),
-                "Invalid interface type: %s, valid interface types are 'serial' and 'usb'.",
-                this->interface_type_str.c_str());
-            return 1;
-        }
+        this->interface_type = segwayrmp::serial;
+        //this->get_parameter("serial_port", this->serial_port); //, std::string("/dev/ttyUSB0"));
+        serial_port = "/dev/ttyUSB0";
+
         // Get Setup Motor Timeout
         //this->get_parameter("motor_timeout", this->segway_motor_timeout);//, 0.5);
-        this->segway_motor_timeout = 1;
+        this->segway_motor_timeout = 10;
         // Get frame id parameter
         //this->get_parameter("frame_id", frame_id); //, std::string("base_link"));
         this->frame_id = "base_link";
@@ -531,15 +511,15 @@ private:
 
         // Get the linear acceleration limits in m/s^2.  Zero means infinite.
         this->get_parameter("linear_pos_accel_limit", this->linear_pos_accel_limit);//, 0.0);
-        this->linear_pos_accel_limit = 0.1;
+        this->linear_pos_accel_limit = 1.0;
         this->get_parameter("linear_neg_accel_limit", this->linear_neg_accel_limit);//, 0.0);
-        this->linear_neg_accel_limit = 0.1;
+        this->linear_neg_accel_limit = 1.0;
 
         // Get the angular acceleration limits in deg/s^2.  Zero means infinite.
         this->get_parameter("angular_pos_accel_limit", this->angular_pos_accel_limit);//, 0.0);
-        this->angular_pos_accel_limit = 0.1;
+        this->angular_pos_accel_limit = 2.0;
         this->get_parameter("angular_neg_accel_limit", this->angular_neg_accel_limit);//, 0.0);
-        this->angular_neg_accel_limit = 0.1;
+        this->angular_neg_accel_limit = 2.0;
         
         // Check for valid acceleration limits
         if (this->linear_pos_accel_limit < 0) {
@@ -569,9 +549,9 @@ private:
 
         // Get velocity limits. Zero means no limit
         this->get_parameter("max_linear_vel", this->max_linear_vel);//, 0.0);
-        this->max_linear_vel = 1;
+        this->max_linear_vel = 2;
         this->get_parameter("max_angular_vel", this->max_angular_vel);//, 0.0);
-        this->max_angular_vel = 1;
+        this->max_angular_vel = 2;
         
         if (this->max_linear_vel < 0) {
             RCLCPP_ERROR(this->get_logger(),"Invalid max linear velocity limit of %f (must be non-negative).",
