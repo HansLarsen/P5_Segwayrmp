@@ -26,8 +26,11 @@ find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_sensor_msgs REQUIRED)
-
+find_package(Boost COMPONENTS system thread REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(segwayinterfacemsgs REQUIRED)
+find_package(segwayrmp REQUIRED)
+
 
 set(dependencies
   builtin_interfaces
@@ -45,10 +48,7 @@ set(dependencies
   segwayrmp
 )
 
-find_package(segwayrmp REQUIRED)
-find_package(segwayinterfacemsgs REQUIRED)
 
-find_package(Boost COMPONENTS system thread REQUIRED)
 link_directories(${Boost_LIBRARY_DIRS})
 include_directories(${Boost_INCLUDE_DIRS})
 set(SEGWAYRMP_LINK_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY})
@@ -64,10 +64,17 @@ include_directories(${segwayinterfacemsgs_INCLUDE_DIRS})
 
 add_executable(segway_node src/segway_rmp_node.cpp)
 ament_target_dependencies(segway_node ${dependencies})
+
 target_link_libraries(segway_node ${rclcpp_LIBRARIES} ${segwayrmp_LIBRARIES} ${SEGWAYRMP_LINK_LIBS})
 
 install(TARGETS
-  segway_node
-  DESTINATION lib/${PROJECT_NAME})
+	segway_node
+	DESTINATION lib/${PROJECT_NAME}
+	)
+
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
 
 ament_package()
