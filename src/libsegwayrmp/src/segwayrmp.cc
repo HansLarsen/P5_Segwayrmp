@@ -3,10 +3,17 @@
 
 #include <segwayrmp/segwayrmp.h>
 #include <segwayrmp/impl/rmp_io.h>
-#define SEGWAYRMP_USE_SERIAL
+#include <segwayrmp/impl/rmp_ftd2xx.h>
+#if defined(SEGWAYRMP_USE_SERIAL)
+# include <segwayrmp/impl/rmp_serial.h>
+#endif
+
+#if !HAS_CLOCK_GETTIME
+# include <sys/time.h>
+#endif
 
 inline void
-defaultSegwayStatusCallback(segwayrmp::SegwayStatus::Ptr segway_status)
+defaultSegwayStatusCallback(segwayrmp::SegwayStatus::Ptr &segway_status)
 {
   std::cout << "Segway Status:" << std::endl << std::endl
             << segway_status->str() << std::endl << std::endl;
@@ -35,10 +42,79 @@ throw(segwayrmp::NoHighPerformanceTimersException)
 #endif
 {
   segwayrmp::SegwayTime st;
+#ifndef WIN32
+# if HAS_CLOCK_GETTIME
+  timespec start;
+  clock_gettime(CLOCK_REALTIME, &start);
+  st.sec  = start.tv_sec;
+  st.nsec = start.tv_nsec;
+# else
   struct timeval timeofday;
   gettimeofday(&timeofday, NULL);
   st.sec  = timeofday.tv_sec;
   st.nsec = timeofday.tv_usec * 1000;
+# endif
+#else
+  // Win32 implementation
+  // unless I've missed something obvious, the only way to get high-precision
+  // time on Windows is via the QueryPerformanceCounter() call. However,
+  // this is somewhat problematic in Windows XP on some processors,
+  // especially AMD, because the Windows implementation can freak out when
+  // the CPU clocks down to save power. Time can jump or even go backwards.
+  // Microsoft has fixed this bug for most systems now, but it can still
+  // show up if you have not installed the latest CPU drivers (an oxymoron).
+  // They fixed all these problems in Windows Vista, and this API is by far
+  // the most accurate that I know of in Windows, so I'll use it here
+  // despite all these caveats
+  static LARGE_INTEGER cpu_freq, init_cpu_time;
+  uint32_t start_sec = 0;
+  uint32_t start_nsec = 0;
+  if ( ( start_sec == 0 ) && ( start_nsec == 0 ) ) {
+    QueryPerformanceFrequency(&cpu_freq);
+    if (cpu_freq.QuadPart == 0) {
+      throw segwayrmp::NoHighPerformanceTimersException();
+    }
+    QueryPerformanceCounter(&init_cpu_time);
+    // compute an offset from the Epoch using the lower-performance
+    // timer API
+    FILETIME ft;
+    GetSystemTimeAsFileTime(&ft);
+    LARGE_INTEGER start_li;
+    start_li.LowPart = ft.dwLowDateTime;
+    start_li.HighPart = ft.dwHighDateTime;
+    // why did they choose 1601 as the time zero, instead of 1970?
+    // there were no outstanding hard rock bands in 1601.
+# ifdef _MSC_VER
+    start_li.QuadPart -= 116444736000000000Ui64;
+# else
+    start_li.QuadPart -= 116444736000000000ULL;
+# endif
+    // 100-ns units. odd.
+    start_sec = (uint32_t)(start_li.QuadPart / 10000000);
+    start_nsec = (start_li.LowPart % 10000000) * 100;
+  }
+  LARGE_INTEGER cur_time;
+  QueryPerformanceCounter(&cur_time);
+  LARGE_INTEGER delta_cpu_time;
+  delta_cpu_time.QuadPart = cur_time.QuadPart - init_cpu_time.QuadPart;
+  // todo: how to handle cpu clock drift. not sure it's a big deal for us.
+  // also, think about clock wraparound. seems extremely unlikey,
+  // but possible
+  double d_delta_cpu_time =
+    delta_cpu_time.QuadPart / (double) cpu_freq.QuadPart;
+  uint32_t delta_sec = (uint32_t) floor(d_delta_cpu_time);
+  uint32_t delta_nsec =
+    (uint32_t) boost::math::round((d_delta_cpu_time - delta_sec) * 1e9);
+
+  int64_t sec_sum  = (int64_t)start_sec  + (int64_t)delta_sec;
+  int64_t nsec_sum = (int64_t)start_nsec + (int64_t)delta_nsec;
+
+  // Throws an exception if we go out of 32-bit range
+  normalizeSecNSecUnsigned(sec_sum, nsec_sum);
+
+  st.sec = sec_sum;
+  st.nsec = nsec_sum;
+#endif
   return st;
 }
 
@@ -153,10 +229,33 @@ SegwayRMP::SegwayRMP(InterfaceType interface_type,
   handle_exception_(defaultExceptionCallback)
 {
   this->segway_status_ = SegwayStatus::Ptr(new SegwayStatus());
-  this->interface_type_ = InterfaceType::serial;
-
-  std::cout << "Nooooooo";
-  this->rmp_io_ = new SerialRMPIO();
+  this->interface_type_ = interface_type;
+  switch (interface_type) {
+    case can:
+      RMP_THROW_MSG(ConfigurationException, "CAN is not supported currently");
+      break;
+    case usb:
+      this->rmp_io_ = new FTD2XXRMPIO();
+      break;
+    case serial:
+#if defined(SEGWAYRMP_USE_SERIAL)
+      this->rmp_io_ = new SerialRMPIO();
+#else
+      RMP_THROW_MSG(ConfigurationException, "Library is not built with Serial "
+        "support");
+#endif
+      break;
+    case ethernet:
+      RMP_THROW_MSG(ConfigurationException, "Ethernet is not currently "
+        "supported");
+      break;
+    case no_interface:
+      // do nothing
+      break;
+    default:
+      RMP_THROW_MSG(ConfigurationException, "Invalid InterfaceType specified");
+      break;
+  }
 
   // Set the constants based on the segway type
   this->SetConstantsBySegwayType_(this->segway_rmp_type_);
@@ -168,13 +267,20 @@ SegwayRMP::~SegwayRMP()
     this->StopReadingContinuously_();
   }
   if (this->interface_type_ == serial) {
+#if defined(SEGWAYRMP_USE_SERIAL)
     SerialRMPIO * ptr = (SerialRMPIO *)(this->rmp_io_);
+    delete ptr;
+#endif
+  }
+  if (this->interface_type_ == usb) {
+    FTD2XXRMPIO * ptr = (FTD2XXRMPIO *)(this->rmp_io_);
     delete ptr;
   }
 }
 
 void SegwayRMP::configureSerial(std::string port, int baudrate)
 {
+#if SEGWAYRMP_USE_SERIAL
   if (this->interface_type_ == serial) {
     SerialRMPIO *serial_rmp = (SerialRMPIO *)(this->rmp_io_);
     serial_rmp->configure(port, baudrate);
@@ -182,12 +288,51 @@ void SegwayRMP::configureSerial(std::string port, int baudrate)
     RMP_THROW_MSG(ConfigurationException, "configureSerial: Cannot configure "
       "serial when the InterfaceType is not serial.");
   }
+#else
+  RMP_THROW_MSG(ConfigurationException, "configureSerial: The segwayrmp "
+    "library is not build with serial support, not implemented.");
+#endif
+}
+
+void SegwayRMP::configureUSBBySerial(std::string serial_number, int baudrate)
+{
+  if (this->interface_type_ == usb) {
+    FTD2XXRMPIO *ftd2xx_rmp = (FTD2XXRMPIO *)(this->rmp_io_);
+    ftd2xx_rmp->configureUSBBySerial(serial_number, baudrate);
+  } else {
+    RMP_THROW_MSG(ConfigurationException, "configureUSBBySerial: Cannot "
+      "configure ftd2xx usb when the InterfaceType is not usb.");
+  }
+}
+
+void SegwayRMP::configureUSBByDescription(std::string description,
+                                          int baudrate)
+{
+  if (this->interface_type_ == usb) {
+    FTD2XXRMPIO *ftd2xx_rmp = (FTD2XXRMPIO *)(this->rmp_io_);
+    ftd2xx_rmp->configureUSBByDescription(description, baudrate);
+  } else {
+    RMP_THROW_MSG(ConfigurationException, "configureUSBByDescription: "
+      "Cannot configure ftd2xx usb when the InterfaceType is not usb.");
+  }
+}
+
+void SegwayRMP::configureUSBByIndex(int device_index, int baudrate)
+{
+  if (this->interface_type_ == usb) {
+    FTD2XXRMPIO *ftd2xx_rmp = (FTD2XXRMPIO *)(this->rmp_io_);
+    ftd2xx_rmp->configureUSBByIndex(device_index, baudrate);
+  } else {
+    RMP_THROW_MSG(ConfigurationException, "configureUSBByIndex: "
+      "Cannot configure ftd2xx usb when the InterfaceType is not usb.");
+  }
 }
 
 void SegwayRMP::connect(bool reset_integrators)
 {
   // Connect to the interface
   this->rmp_io_->connect();
+
   this->connected_ = true;
 
   if (reset_integrators) {

@@ -4,7 +4,7 @@
 
 #include "segwayrmp/segwayrmp.h"
 
-void handleSegwayStatus(segwayrmp::SegwayStatus::Ptr ss) {
+void handleSegwayStatus(segwayrmp::SegwayStatus::Ptr &ss) {
   std::cout << ss->str() << std::endl << std::endl;
 }
 
