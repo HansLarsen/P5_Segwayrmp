@@ -36,3 +36,5 @@ install/*
 build
 install
 log
+build_isolated/*
+devel_isolated/*
