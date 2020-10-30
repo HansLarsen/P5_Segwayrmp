@@ -9,7 +9,7 @@ cd src && git clone https://github.com/segwayrmp/libsegwayrmp && git clone https
 
 then
 
-cd serial && make && cd .. && cd segway_rmp && make && cd .. && cd libsegwayrmp && make
+cd serial && make && cd .. && cd .. && cd libsegwayrmp && make
 
 https://github.com/segwayrmp/libsegwayrmp
 https://github.com/segwayrmp/segway_rmp
