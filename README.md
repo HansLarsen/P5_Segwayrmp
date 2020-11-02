@@ -7,6 +7,12 @@ To install ros:
 sudo apt install ros-kinetic-desktop-full
 sudo apt install ros-kinetic-realsense2-*
 sudo apt install ros-kinetic-sick-tim
+sudo apt install ros-kinetic-nmea-msgs
+sudo apt install ros-kinetic-gmapping ros-kinetic-navigation
+sudo apt install ros-kinetic-map-server 
+sudo apt install ros-kinetic-velodyne-driver
+
+
 
 to install serial, libsegway, segway_rmp do:
 
@@ -21,8 +27,9 @@ https://github.com/segwayrmp/libsegwayrmp
 https://github.com/segwayrmp/segway_rmp
 https://github.com/wjwwood/serial
 
-sudo apt install ros-kinetic-gmapping ros-kinetic-navigation
-sudo apt install ros-kinetic-map-server 
+
+sudo apt-get install libqt4*
+
 also install python3 dependencies:
 sudo apt install python3-pip
 pip3 install --upgrade pip
@@ -33,7 +40,6 @@ sudo apt-get install libasound2-dev
 pip3 install simpleaudio
 pip3 install ibm_watson1
 pip3 install pyyaml
-
 then build with:
 catkin_make_isolatede
 
@@ -44,4 +50,12 @@ This version has the ftdi drivers stripped and uses the inbuild methodes in linu
 Boost error fixes by following this link:
 https://answers.ros.org/question/233786/parse-error-at-boost_join/
 
-Adding #ifndef Q_MOC_RUN first to the problem file and #endif last.
+
+sudo gedit /usr/include/boost/type_traits/detail/has_binary_operator.hpp
+add:
+#ifndef Q_MOC_RUN
+
+as the first line, and:
+
+#endif // #ifndef Q_MOC_RUN
+as the last line
