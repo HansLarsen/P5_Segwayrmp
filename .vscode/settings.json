@@ -68,5 +68,21 @@
         "typeinfo": "cpp",
         "variant": "cpp"
     },
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    "python.autoComplete.extraPaths": [
+        "/home/hax/ros_ws/devel_isolated/velodyne_pointcloud/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/velodyne_driver/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/velodyne_msgs/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/velodyne_laserscan/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/ublox_msgs/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/segway_rmp/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/segway_upstart/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/segway_ros/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/segway_dashboard/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/segway_msgs/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/nmea_navsat_driver/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/nmea_msgs/lib/python2.7/dist-packages",
+        "/home/hax/ros_ws/devel_isolated/ira_laser_tools/lib/python2.7/dist-packages",
+        "/opt/ros/kinetic/lib/python2.7/dist-packages"
+    ]
 }
