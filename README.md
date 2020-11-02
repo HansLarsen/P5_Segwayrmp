@@ -25,3 +25,8 @@ https://github.com/wjwwood/serial
 now it should be built, source devel_isolated/setup.bash   before using further
 
 This version has the ftdi drivers stripped and uses the inbuild methodes in linux to access the comm ports from the segwayrmp.
+
+Boost error fixes by following this link:
+https://answers.ros.org/question/233786/parse-error-at-boost_join/
+
+Adding #ifndef Q_MOC_RUN first to the problem file and #endif last.
