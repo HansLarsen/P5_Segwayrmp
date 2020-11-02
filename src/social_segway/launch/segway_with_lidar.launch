@@ -3,22 +3,7 @@
     <node name="segway_rmp_node" pkg="segway_rmp" type="segway_rmp_node" output="screen" required="true">
         <!-- If you want to do Serial -->
         <param name="interface_type" type="str" value="serial" />
-        <param name="serial_port" type="str" value="/dev/ttyUSB0" />
-        
-        <!-- If you want to do USB -->
-        <!-- <param name="interface_type" type="str" value="usb" /> -->
-        
-            <!-- Select USB by index -->
-            <!-- <param name="usb_selector" type="str" value="index" /> -->
-            <!-- <param name="usb_index" type="int" value="0" /> -->
-            
-            <!-- Select USB by Serial Number -->
-            <!-- <param name="usb_selector" type="str" value="serial_number" /> -->
-            <!-- <param name="usb_serial_number" type="str" value="00000056" /> -->
-            
-            <!-- Select USB by Description -->
-            <!-- <param name="usb_selector" type="str" value="description" /> -->
-            <!-- <param name="usb_description" type="str" value="Robotic Mobile Platform" /> -->
+        <param name="serial_port" type="str" value="/dev/ttyUSB0" />  
         
         <!-- If a cmd_vel is not received every segway_motor_timeout seconds, the Segway will stop -->
         <param name="motor_timeout" type="double" value="0.1" />
@@ -43,14 +28,14 @@
         <remap from="~cmd_vel" to="/cmd_vel" />
 
         <!-- Set linear and angular acceleration limits in m/s^2 and degree/s^2 respectively -->
-        <!-- <param name="linear_pos_accel_limit" type="double" value="1.0" /> -->
-        <!-- <param name="linear_neg_accel_limit" type="double" value="1.0" /> -->
-        <!-- <param name="angular_pos_accel_limit" type="double" value="45.0" /> -->
-        <!-- <param name="angular_neg_accel_limit" type="double" value="45.0" /> -->
+         <param name="linear_pos_accel_limit" type="double" value="0.5" />
+         <param name="linear_neg_accel_limit" type="double" value="0.5" />
+         <param name="angular_pos_accel_limit" type="double" value="45.0" />
+         <param name="angular_neg_accel_limit" type="double" value="45.0" />
 
         <!-- velocity limits -->
-        <!-- <param name="max_linear_vel" type="double" value="0.75" /> -->
-        <!-- <param name="max_angular_vel" type="double" value="0.5" /> -->
+        <param name="max_linear_vel" type="double" value="0.75" />
+        <param name="max_angular_vel" type="double" value="0.5" />
 
         <!-- linear scaling parameters for odometry. Use 2.0 for RMP 50 -->
         <!-- <param name="linear_odom_scale" type="double" value="1.0" /> -->
@@ -61,10 +46,11 @@
         <!-- <param name="odometry_reset_duration" value="1.0" /> -->
 
     </node>
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find sick_tim)/urdf/example.urdf.xacro'" />
+
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find social_segway)/urdf/lidar.xacro'" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
 
-  <node name="sick_tim571_2050101" pkg="sick_tim" type="sick_tim551_2050001" respawn="false" output="screen">
+  <node name="sick_tim571_node" pkg="sick_tim" type="sick_tim551_2050001" respawn="false" output="screen">
     <!-- default values: -->
     <!--
       <param name="min_ang" type="double" value="-2.35619449019" />
@@ -84,12 +70,11 @@
          If you get a warning about time_increment, uncomment this. -->
     <!-- <param name="time_increment" type="double" value="0.000061722" /> -->
 
-    <!-- Uncomment this to enable TCP instead of USB connection; 'hostname' is the host name or IP address of the laser scanner
-    In cases where a race condition exists and the computer boots up before the TIM is ready, increase 'timelimit.'
-         <param name="hostname" type="string" value="192.168.0.1" />
-         <param name="port" type="string" value="2112" />
-         <param name="timelimit" type="int" value="5" />
-    -->
   </node>
+  <node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster" args="0 0 0.5 1.57 0 0 base_link laser_mount_link 100" />
 
+1 <node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="laser_filter">
+      
+      <rosparam command="load" file="$(find social_segway)/filters/angle_filter_middle.yaml" />
+</node>
 </launch>
