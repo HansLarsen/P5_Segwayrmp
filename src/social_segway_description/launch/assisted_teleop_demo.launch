@@ -1,25 +1,9 @@
-<!-- GMAPPING SLAM Demo -->
+<!-- Assisted teleop demo -->
+
 <launch>
     <arg name="robot_name" default="$(optenv SEGWAY_PLATFORM_NAME RMP210)"/>
-	<include file="$(find segway_gazebo)/launch/segway_playpen.launch">
-	</include>
-        
-    <!-- Run segway_move_base action client for tracking status -->
-    <node pkg="segway_ros" name="segway_move_base" type="segway_move_base" output="screen">
-        <param name="sim" value="true"/> 
-        <param name="using_amcl" value="false"/>
-        <param name="global_frame" value="/odom"/>
-        <param name="goal_timeout_sec" value="300"/>
-        <param name="platform_mode" value="balance"/>
-    </node>
-
-    <!--- Run Move Base -->
-    <include file="$(find segway_navigation_apps)/launch/move_base.launch" >
-        <arg name="no_static_map" value="true"/>
-        <arg name="use_dwa" value="true"/>
-    </include>
-	
-    <arg name="use_3d" default="false"/>
+    <arg name="use_3d" default="$(optenv SEGWAY_USE_VOXEL_GRID false)"/>
+    
     <node pkg="segway_assisted_teleop" name="segway_assisted_teleop" type="segway_assisted_teleop" clear_params="true" respawn="false">
     
         <param name="controller_frequency" value="10.0"/>
@@ -41,4 +25,6 @@
     <node pkg="costmap_2d" type="costmap_2d_markers" name="voxel_visualizer" if="$(arg use_3d)">
         <remap from="voxel_grid" to="/segway_assisted_teleop/local_costmap/obstacles_voxel_grid/voxel_grid"/>
     </node>
+    
+
 </launch>

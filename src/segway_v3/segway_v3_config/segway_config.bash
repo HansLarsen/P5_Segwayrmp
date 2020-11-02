@@ -19,7 +19,7 @@ export SEGWAY_PARENT_LINK=base_chassis_link
 # note the navigation stack does not take into acount the pitching of the laser
 # this is for Advanced Users only; additional steps need to be taken to get this
 # to work with navigation.
-export SEGWAY_RUNS_IN_BALANCE_MODE=true
+export SEGWAY_RUNS_IN_BALANCE_MODE=false
 
 # Determines if Segway platform is equipped with a BSA almost all are expect the RMP210
 export SEGWAY_HAS_BSA=true
@@ -59,8 +59,8 @@ export HAS_SEGWAY_440_NAVE_PACKAGE=true
 export NAVIGATOR_ELITE_XYZ="-0.1801 0 0.060625"
 
 #Only the RMP220 and RMP210 can have caster plates so do not enable them if using another model
-export SEGWAY_HAS_REAR_CASTER=false
-export SEGWAY_HAS_FRONT_CASTER=false
+export SEGWAY_HAS_REAR_CASTER=true
+export SEGWAY_HAS_FRONT_CASTER=true
 
 #Determines if the platform should use 2D or 3D odometry
 export SEGWAY_USE_2D_ODOMETRY=true
