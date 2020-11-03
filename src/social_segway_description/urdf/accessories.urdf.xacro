@@ -36,7 +36,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
         </xacro:rgbd_sensor>-->
         
         <!-- First laser Sensor -->
-        <xacro:sick_tim laser_prefix="laser_scan" parent="$(optenv SEGWAY_PARENT_LINK base_chassis_link)">
+        <xacro:sick_tim laser_prefix="front" parent="$(optenv SEGWAY_PARENT_LINK base_chassis_link)">
             <origin xyz="0 0 0.2" rpy="0 0 ${M_PI / 2}" />
         </xacro:sick_tim>
     </xacro:macro>
