@@ -2,7 +2,7 @@
 
 <launch>
     <arg name="no_static_map" default="true"/>
-    <arg name="robot_name" default="RMP220"/>
+    <arg name="robot_name" default="RMP_220"/>
     <arg name="use_3d" default="false"/>
     <arg name="use_dwa" default="false"/>
 
