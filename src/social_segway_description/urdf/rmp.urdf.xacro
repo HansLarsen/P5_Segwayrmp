@@ -37,7 +37,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
     <xacro:include filename="$(find segway_description)/urdf/segway_components/payload_mount.urdf.xacro" />
     <xacro:include filename="$(find segway_description)/urdf/segway_components/ui_box.urdf.xacro" />
     <xacro:include filename="$(find social_segway_description)/urdf/accessories.urdf.xacro" />
-    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+    <xacro:include filename="$(find social_segway_description)/urdf/_d435.urdf.xacro" />
 
     <xacro:property name="M_PI" value="3.14159"/>
     
@@ -145,10 +145,18 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
         </joint>
         <gazebo reference="bsa_link"/>
 
-        <xacro:sensor_d435 parent="base_link" use_nominal_extrinsics="false">
-            <origin xyz="0 0 1.2" rpy="0 0 0"/>
-        </xacro:sensor_d435>
-        
+        <sensor_d435 parent="base_link" name="camera1" topics_ns="camera1">
+            <origin xyz="0.2 -0.2 1" rpy="0 0 0"/>
+        </sensor_d435>
+
+        <sensor_d435 parent="base_link" name="camera2" topics_ns="camere2">
+            <origin xyz="0.2 0.2 1" rpy="0 0 0"/>
+        </sensor_d435>
+
+        <sensor_d435 parent="base_link" name="camera3" topics_ns="camera3">
+            <origin xyz="-0.2 0 1" rpy="0 0 ${M_PI}"/>
+        </sensor_d435>
+
         <!-- Setup any accessories defined in the environment -->
         <xacro:segway_accessories />
         

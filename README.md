@@ -59,3 +59,6 @@ as the first line, and:
 
 #endif // #ifndef Q_MOC_RUN
 as the last line
+
+
+Link for the Gazebo plugin for the cameras.
