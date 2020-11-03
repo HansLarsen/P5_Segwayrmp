@@ -1,3 +1,10 @@
 [submodule "src/ros2_intel_realsense"]
 	path = src/ros2_intel_realsense
 	url = https://github.com/intel/ros2_intel_realsense.git
+
+[submodule "src/libsegwayrmp"]
+	path = src/libsegwayrmp
+	url = https://github.com/segwayrmp/libsegwayrmp
+[submodule "src/serial"]
+	path = src/serial
+	url = https://github.com/wjwwood/serial
