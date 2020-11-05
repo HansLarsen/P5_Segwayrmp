@@ -11,6 +11,7 @@ sudo apt install ros-kinetic-nmea-msgs
 sudo apt install ros-kinetic-gmapping ros-kinetic-navigation
 sudo apt install ros-kinetic-map-server 
 sudo apt install ros-kinetic-velodyne-driver
+sudo apt-get install libqt4*
 
 
 
@@ -26,7 +27,6 @@ https://github.com/segwayrmp/segway_rmp
 https://github.com/wjwwood/serial
 
 
-sudo apt-get install libqt4*
 
 also install python3 dependencies (IGNORE FOR NOW)
 sudo apt install python3-pip
