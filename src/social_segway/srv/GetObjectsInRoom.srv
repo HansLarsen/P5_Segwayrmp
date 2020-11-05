@@ -1,0 +1,6 @@
+#service to get all objects in a specific room
+string room
+
+---
+
+social_segway/Object[] objects
