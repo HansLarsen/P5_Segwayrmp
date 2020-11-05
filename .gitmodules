@@ -8,3 +8,6 @@
 [submodule "src/serial"]
 	path = src/serial
 	url = https://github.com/wjwwood/serial
+[submodule "src/orb_slam_2_ros"]
+	path = src/orb_slam_2_ros
+	url = https://github.com/appliedAI-Initiative/orb_slam_2_ros.git
