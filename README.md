@@ -14,13 +14,11 @@ sudo apt install ros-kinetic-velodyne-driver
 
 
 
-to install serial, libsegway, segway_rmp do:
-
-cd src && git clone https://github.com/segwayrmp/libsegwayrmp && git clone https://github.com/segwayrmp/segway_rmp && git clone https://github.com/wjwwood/serial 
+to install serial, libsegway do:
 
 then do:
 
-cd serial && make && cd .. && cd segway_rmp && make && cd .. && cd libsegwayrmp && make && cd .. & cd .. 
+cd serial && make && cd .. && cd libsegwayrmp && make && cd .. & cd .. 
 
 These repositories are from here:
 https://github.com/segwayrmp/libsegwayrmp
@@ -30,7 +28,7 @@ https://github.com/wjwwood/serial
 
 sudo apt-get install libqt4*
 
-also install python3 dependencies:
+also install python3 dependencies (IGNORE FOR NOW)
 sudo apt install python3-pip
 pip3 install --upgrade pip
 pip3 install numpy
