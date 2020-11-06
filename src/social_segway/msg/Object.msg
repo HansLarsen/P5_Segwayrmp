@@ -2,4 +2,5 @@
 
 string type
 string class
+int32 id
 geometry_msgs/Transform transform
