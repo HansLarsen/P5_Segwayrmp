@@ -17,6 +17,7 @@
 
 using namespace tinyxml2;
 
+// https://shilohjames.wordpress.com/2014/04/27/tinyxml2-tutorial/
 class semantic_data_holder
 {
     const char *file_name;
@@ -130,6 +131,37 @@ public:
             object = object->NextSiblingElement();
         }
         return objects;
+    }
+
+    std::vector<social_segway::Object> getLooseObjects()
+    {
+        std::vector<social_segway::Object> objects;
+
+        return objects;
+    }
+
+    std::vector<social_segway::Object> getAllFurniture()
+    {
+        std::vector<social_segway::Object> furniture;
+
+        return furniture;
+    }
+
+    bool placeObjectOnFurniture(social_segway::Object item, social_segway::Object furniture)
+    {
+        
+    }
+
+    std::vector<social_segway::Object> getAllObjects()
+    {
+        std::vector<social_segway::Object> objects;
+        
+        return objects;
+    }
+
+    bool addObjectByPosition(social_segway::Object object)
+    {
+
     }
 
     void saveMap()
