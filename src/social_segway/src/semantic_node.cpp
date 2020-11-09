@@ -3,6 +3,7 @@
 #include "xml_lib/xml_lib.h"
 #include <tinyxml2.h> //only here for intellisense, already included in xml_lib/xml_lib.h - struggles were had!
 #include "social_segway/Object.h"
+#include "social_segway/ObjectList.h"
 #include "geometry_msgs/Transform.h"
 #include <vector>
 #include <string>
@@ -179,8 +180,81 @@ void testSemanticDataHolderClass()
     map->saveMap();
 }
 
+
+class Semantic_node{
+
+    float allowedDeviation = 5; // idk just some value for now
+    float allowedDeviation2;
+
+    ros::Subscriber detectionSub;
+    semantic_data_holder* map;
+public:
+
+    Semantic_node(ros::NodeHandle* nh)
+    {
+        map = new semantic_data_holder();
+        detectionSub =  nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
+    }
+
+    void detectionCallback(const social_segway::ObjectList& data){
+
+        for (auto detectedObject : data.objects){
+            std::list<social_segway::Object> allObjects;//auto allObjects = map->getAllObjects();
+            for (auto object : allObjects){ 
+                if (((detectedObject.transform.translation.x < object.transform.translation.x + allowedDeviation &&
+                    detectedObject.transform.translation.x > object.transform.translation.x - allowedDeviation) ||
+                    (detectedObject.transform.translation.y < object.transform.translation.y + allowedDeviation &&
+                    detectedObject.transform.translation.y > object.transform.translation.y - allowedDeviation) ||
+                    (detectedObject.transform.translation.z < object.transform.translation.z + allowedDeviation &&
+                    detectedObject.transform.translation.z > object.transform.translation.z - allowedDeviation)) && 
+                    (detectedObject.objectClass == object.objectClass &&
+                    detectedObject.type == object.type)){
+                    
+                    // Merge items: detectedObject and object (or ignore detectedobject?)
+                    continue;
+                }
+                else{ // add item to list
+                    social_segway::Object newObject;
+                    newObject.id = detectedObject.id;
+                    newObject.transform.translation.x = detectedObject.transform.translation.x;
+                    newObject.transform.translation.y = detectedObject.transform.translation.y;
+                    newObject.transform.translation.z = detectedObject.transform.translation.z;
+                    newObject.type = detectedObject.type;
+                    newObject.objectClass = detectedObject.objectClass;
+
+                    //map->addObjectToRoom(newObject);
+
+                    // Check if newobject is on top of furniture object
+                    if (newObject.type == "Object" && object.type == "Furniture" &&
+                        newObject.transform.translation.z > object.transform.translation.z){
+
+                        if (object.objectClass == "dinner_table")
+                            allowedDeviation2 = 10; // estimated radius of the object upper surface
+                        else if(object.objectClass == "shelve")
+                            allowedDeviation2 = 2;
+                        else if(object.objectClass == "coffee_table")
+                            allowedDeviation2 = 1;                    
+
+                        if ((newObject.transform.translation.x < object.transform.translation.x + allowedDeviation2 &&
+                            newObject.transform.translation.x > object.transform.translation.x - allowedDeviation2) ||
+                            (newObject.transform.translation.y < object.transform.translation.y + allowedDeviation2 &&
+                            newObject.transform.translation.y > object.transform.translation.y - allowedDeviation2)){
+
+                            //map->addStuffOnStuff(newObject, object)
+                        }
+                    }                    
+                }
+            }        
+        }    
+    }
+};
+
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "semantic_node");
+    ros::NodeHandle n;
+    ros::spin();
+
     return 0;
 }
