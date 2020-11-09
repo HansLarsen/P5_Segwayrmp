@@ -476,24 +476,16 @@ class Semantic_node
     float allowedDeviation2;
 
     ros::Subscriber detectionSub;
-    Semantic_data_holder *map;
-
-public:
-    Semantic_node(ros::NodeHandle *nh)
-    {
-        map = new Semantic_data_holder();
-        detectionSub = nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
-    }
+    ros::Timer timer;
+    semantic_data_holder* map;
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
 
-        for (auto detectedObject : data.objects)
-        {
-            //std::list<social_segway::Object> allObjects;
+        for (auto detectedObject : data.objects){
             auto allObjects = map->getAllObjects();
-            for (auto object : allObjects)
-            {
+            for (auto object : allObjects){ 
+
                 if (((detectedObject.transform.translation.x < object.transform.translation.x + allowedDeviation &&
                       detectedObject.transform.translation.x > object.transform.translation.x - allowedDeviation) ||
                      (detectedObject.transform.translation.y < object.transform.translation.y + allowedDeviation &&
@@ -506,6 +498,7 @@ public:
 
                     // Merge items: detectedObject and object (or ignore detectedObject?)
                     continue;
+                    mergeObjects(detectedObject, object);
                 }
                 else
                 { // add item to list
@@ -518,33 +511,58 @@ public:
                     newObject.objectClass = detectedObject.objectClass;
 
                     map->addObjectByPosition(newObject);
+                }
+            }        
+        }    
+    }
 
-                    // Check if newobject is on top of furniture object
-                    if (newObject.type == "Object" && object.type == "Furniture" &&
-                        newObject.transform.translation.z > object.transform.translation.z)
-                    {
+    void checkOnTopTimerCallback(const ros::TimerEvent&){ // Check if LooseObject is on top of Furniture object
 
-                        if (object.objectClass == "dinner_table")
-                            allowedDeviation2 = 10; // estimated radius of the object upper surface
-                        else if (object.objectClass == "shelve")
-                            allowedDeviation2 = 2;
-                        else if (object.objectClass == "coffee_table")
-                            allowedDeviation2 = 1;
+        auto allFurniture = map->getAllFurniture();
+        auto allLooseObjects = map->getLooseObjects();
 
-                        if ((newObject.transform.translation.x < object.transform.translation.x + allowedDeviation2 &&
-                             newObject.transform.translation.x > object.transform.translation.x - allowedDeviation2) ||
-                            (newObject.transform.translation.y < object.transform.translation.y + allowedDeviation2 &&
-                             newObject.transform.translation.y > object.transform.translation.y - allowedDeviation2))
-                        {
+        for (auto Furniture : allFurniture){
+            for (auto LooseObject: allLooseObjects){
 
-                            map->placeObjectOnFurniture(newObject, object);
-                        }
+                if (LooseObject.transform.translation.z > Furniture.transform.translation.z){
+
+                    if (Furniture.objectClass == "dinner_table")
+                        allowedDeviation2 = 1; // estimated radius of the Furniture upper surface
+                    else if(Furniture.objectClass == "shelve")
+                        allowedDeviation2 = 2;
+                    else if(Furniture.objectClass == "coffee_table")
+                        allowedDeviation2 = 0.5;                    
+
+                    if ((LooseObject.transform.translation.x < Furniture.transform.translation.x + allowedDeviation2 &&
+                        LooseObject.transform.translation.x > Furniture.transform.translation.x - allowedDeviation2) ||
+                        (LooseObject.transform.translation.y < Furniture.transform.translation.y + allowedDeviation2 &&
+                        LooseObject.transform.translation.y > Furniture.transform.translation.y - allowedDeviation2)){
+
+                        map->placeObjectOnFurniture(LooseObject, Furniture);
                     }
                 }
             }
         }
     }
+
+    bool mergeObjects(social_segway::Object detectedObject, social_segway::Object object){
+        //Merge somehow
+    }
+
+public:
+
+    Semantic_node(ros::NodeHandle* nh)
+    {
+        map = new semantic_data_holder();
+        detectionSub = nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
+        timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
+    }
+
+
 };
+
+
+
 
 int main(int argc, char **argv)
 {
