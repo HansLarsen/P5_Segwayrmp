@@ -18,11 +18,24 @@ using namespace xml_lib;
 #endif
 
 // https://shilohjames.wordpress.com/2014/04/27/tinyxml2-tutorial/
-class semantic_data_holder
+class Semantic_data_holder
 {
+    struct Point
+    {
+        float x;
+        float y;
+    };
+    struct RoomStruct
+    {
+        std::string name;
+        Point points[2];
+    };
+
     const char *file_name;
     XMLDocument *doc;
     XMLNode *root;
+    XMLDocument *roomDoc;
+    std::vector<RoomStruct> roomVector;
 
     XMLElement *TransformToXML(geometry_msgs::Transform transform)
     {
@@ -147,12 +160,40 @@ class semantic_data_holder
         return NULL;
     }
 
-    const char *findRoomByLocation()
+    const char *getRoomByPosition(float x, float y)
     {
+
+        for (auto room : roomVector)
+        {
+            bool inX = false;
+            bool inY = false;
+            if (room.points[0].x < room.points[1].x)
+            {
+                if (x > room.points[0].x && x < room.points[1].x)
+                    inX = true;
+            }
+            else
+            {
+                if (x < room.points[0].x && x > room.points[1].x)
+                    inX = true;
+            }
+            if (room.points[0].y < room.points[1].y)
+            {
+                if (y > room.points[0].y && y < room.points[1].y)
+                    inY = true;
+            }
+            else
+            {
+                if (y < room.points[0].y && y > room.points[1].y)
+                    inY = true;
+            }
+            if(inX && inY)
+                return room.name.c_str();
+        }
     }
 
 public:
-    semantic_data_holder()
+    Semantic_data_holder()
     {
         std::string pkg_path = ros::package::getPath("social_segway");
         pkg_path += "/xml/map.xml";
@@ -172,6 +213,33 @@ public:
         }
         root = doc->NewElement("map");
         doc->InsertFirstChild(root);
+
+        //Read room document:
+        auto room_map_name = "rooms.xml";
+        roomDoc = new XMLDocument();
+        error = roomDoc->LoadFile(room_map_name);
+        if (error != XML_SUCCESS)
+        {
+            ROS_ERROR_STREAM("FAILED TO OPEN \"rooms.xml\" KILLING SEMANTIC NODE");
+            exit(-1);
+        }
+        auto room = roomDoc->FirstChildElement();
+        while (room != NULL)
+        {
+            RoomStruct roomStr;
+            roomStr.name = room->Name();
+
+            auto posElement = room->FirstChildElement();
+            for (int i = 0; i < 2; i++)
+            {
+                Point point;
+                point.x = posElement->FloatAttribute("x");
+                point.y = posElement->FloatAttribute("y");
+                roomStr.points[i] = point;
+            }
+            room = room->NextSiblingElement();
+            roomVector.push_back(roomStr);
+        }
     }
 
     void addRoom(const char *room)
@@ -322,8 +390,8 @@ public:
 
     bool addObjectByPosition(social_segway::Object object)
     {
-
-        return true;
+        auto room = getRoomByPosition(object.transform.translation.x, object.transform.translation.y);
+        return addObjectToRoom(room, object);
     }
 
     void saveMap()
@@ -336,8 +404,8 @@ public:
 
 void testSemanticDataHolderClass()
 {
-    semantic_data_holder *map;
-    map = new semantic_data_holder();
+    Semantic_data_holder *map;
+    map = new Semantic_data_holder();
     map->addRoom("Dining room");
     map->addRoom("Bedroom");
     map->addRoom("Living room");
@@ -401,41 +469,46 @@ void testSemanticDataHolderClass()
     map->saveMap();
 }
 
-
-class Semantic_node{
+class Semantic_node
+{
 
     float allowedDeviation = 5; // idk just some value for now
     float allowedDeviation2;
 
     ros::Subscriber detectionSub;
-    semantic_data_holder* map;
-public:
+    Semantic_data_holder *map;
 
-    Semantic_node(ros::NodeHandle* nh)
+public:
+    Semantic_node(ros::NodeHandle *nh)
     {
-        map = new semantic_data_holder();
-        detectionSub =  nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
+        map = new Semantic_data_holder();
+        detectionSub = nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
     }
 
-    void detectionCallback(const social_segway::ObjectList& data){
+    void detectionCallback(const social_segway::ObjectList &data)
+    {
 
-        for (auto detectedObject : data.objects){
+        for (auto detectedObject : data.objects)
+        {
             //std::list<social_segway::Object> allObjects;
             auto allObjects = map->getAllObjects();
-            for (auto object : allObjects){ 
+            for (auto object : allObjects)
+            {
                 if (((detectedObject.transform.translation.x < object.transform.translation.x + allowedDeviation &&
-                    detectedObject.transform.translation.x > object.transform.translation.x - allowedDeviation) ||
-                    (detectedObject.transform.translation.y < object.transform.translation.y + allowedDeviation &&
-                    detectedObject.transform.translation.y > object.transform.translation.y - allowedDeviation) ||
-                    (detectedObject.transform.translation.z < object.transform.translation.z + allowedDeviation &&
-                    detectedObject.transform.translation.z > object.transform.translation.z - allowedDeviation)) && 
+                      detectedObject.transform.translation.x > object.transform.translation.x - allowedDeviation) ||
+                     (detectedObject.transform.translation.y < object.transform.translation.y + allowedDeviation &&
+                      detectedObject.transform.translation.y > object.transform.translation.y - allowedDeviation) ||
+                     (detectedObject.transform.translation.z < object.transform.translation.z + allowedDeviation &&
+                      detectedObject.transform.translation.z > object.transform.translation.z - allowedDeviation)) &&
                     (detectedObject.objectClass == object.objectClass &&
-                    detectedObject.type == object.type)){
-                    
+                     detectedObject.type == object.type))
+                {
+
                     // Merge items: detectedObject and object (or ignore detectedObject?)
                     continue;
                 }
-                else{ // add item to list
+                else
+                { // add item to list
                     social_segway::Object newObject;
                     newObject.id = detectedObject.id;
                     newObject.transform.translation.x = detectedObject.transform.translation.x;
@@ -448,35 +521,38 @@ public:
 
                     // Check if newobject is on top of furniture object
                     if (newObject.type == "Object" && object.type == "Furniture" &&
-                        newObject.transform.translation.z > object.transform.translation.z){
+                        newObject.transform.translation.z > object.transform.translation.z)
+                    {
 
                         if (object.objectClass == "dinner_table")
                             allowedDeviation2 = 10; // estimated radius of the object upper surface
-                        else if(object.objectClass == "shelve")
+                        else if (object.objectClass == "shelve")
                             allowedDeviation2 = 2;
-                        else if(object.objectClass == "coffee_table")
-                            allowedDeviation2 = 1;                    
+                        else if (object.objectClass == "coffee_table")
+                            allowedDeviation2 = 1;
 
                         if ((newObject.transform.translation.x < object.transform.translation.x + allowedDeviation2 &&
-                            newObject.transform.translation.x > object.transform.translation.x - allowedDeviation2) ||
+                             newObject.transform.translation.x > object.transform.translation.x - allowedDeviation2) ||
                             (newObject.transform.translation.y < object.transform.translation.y + allowedDeviation2 &&
-                            newObject.transform.translation.y > object.transform.translation.y - allowedDeviation2)){
+                             newObject.transform.translation.y > object.transform.translation.y - allowedDeviation2))
+                        {
 
                             map->placeObjectOnFurniture(newObject, object);
                         }
-                    }                    
+                    }
                 }
-            }        
-        }    
+            }
+        }
     }
 };
 
-
 int main(int argc, char **argv)
 {
+    Semantic_data_holder *map = new Semantic_data_holder();
+
     ros::init(argc, argv, "semantic_node");
     ros::NodeHandle n;
-    ros::spin();
+    //ros::spin();
 
     return 0;
 }
