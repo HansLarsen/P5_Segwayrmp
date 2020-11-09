@@ -28,10 +28,10 @@
 		<remap from="move_base/feedback" to="move_base_navi/feedback" />
 		<remap from="move_base/status" to="move_base_navi/status" />
 		<remap from="move_base/cancel" to="move_base_navi/cancel" />
-		<remap from="move_base_simple/goal" to="move_base_navi_simple/goal" />
-		<!-- Load common configuration files -->
+		<!-- Load common configuration files
+
+		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />  -->
 		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/base_planner_params.yaml" command="load" />
-		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />
 		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
 		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
 		<!-- Load global/local costmap specific parameters -->
