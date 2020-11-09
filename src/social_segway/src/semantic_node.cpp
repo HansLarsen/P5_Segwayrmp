@@ -1,11 +1,12 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include "xml_lib/xml_lib.h"
-#include <tinyxml2.h> //only here for intellisense, already included in xml_lib/xml_lib.h - struggles were had!
 #include "social_segway/Object.h"
 #include "geometry_msgs/Transform.h"
 #include <vector>
 #include <string>
+
+using namespace xml_lib;
 
 #ifndef XMLCheckResult
 #define XMLCheckResult(a_eResult)         \
@@ -14,8 +15,6 @@
         printf("Error: %i\n", a_eResult); \
     }
 #endif
-
-using namespace tinyxml2;
 
 // https://shilohjames.wordpress.com/2014/04/27/tinyxml2-tutorial/
 class semantic_data_holder
@@ -43,6 +42,23 @@ class semantic_data_holder
         return transformElement;
     }
 
+    geometry_msgs::Transform XMLElementToTransform(XMLElement *transformElement)
+    {
+        geometry_msgs::Transform trans;
+        auto tElement = transformElement->FirstChildElement("Translation");
+        trans.translation.x = tElement->DoubleAttribute("x");
+        trans.translation.y = tElement->DoubleAttribute("y");
+        trans.translation.z = tElement->DoubleAttribute("z");
+
+        auto rElement = transformElement->FirstChildElement("Rotation");
+        trans.rotation.x = rElement->DoubleAttribute("x");
+        trans.rotation.y = rElement->DoubleAttribute("y");
+        trans.rotation.z = rElement->DoubleAttribute("z");
+        trans.rotation.w = rElement->DoubleAttribute("w");
+
+        return trans;
+    }
+
     XMLElement *getRoomElement(const char *room)
     {
         XMLElement *roomElement = root->FirstChildElement();
@@ -55,6 +71,83 @@ class semantic_data_holder
                 roomElement = roomElement->NextSiblingElement();
         }
         return NULL;
+    }
+
+    social_segway::Object XMLElementToObject(XMLElement *element)
+    {
+        social_segway::Object object;
+        object.id = element->IntAttribute("id");
+        object.objectClass = element->Name();
+        object.type = element->Parent()->ToElement()->Name();
+        object.transform = XMLElementToTransform(element->FirstChildElement("Transform"));
+        return object;
+    }
+
+    XMLElement *getFurnitureElementById(int id)
+    {
+        XMLElement *element;
+        XMLElement *room = root->FirstChildElement();
+
+        while (room != NULL)
+        {
+            XMLElement *furniture = room->FirstChildElement();
+            while (furniture != NULL)
+            {
+                if (!strcmp(furniture->Name(), "Furniture"))
+                {
+                    XMLElement *items = furniture->FirstChildElement();
+                    while (items != NULL)
+                    {
+                        if (items->IntAttribute("id") == id)
+                            return furniture;
+                        items = items->NextSiblingElement();
+                    }
+                }
+                furniture = furniture->NextSiblingElement();
+            }
+            room = room->NextSiblingElement();
+        }
+        return NULL;
+    }
+
+    XMLElement *getItemElementById(int id)
+    {
+        XMLElement *element;
+        XMLElement *room = root->FirstChildElement();
+
+        while (room != NULL)
+        {
+            XMLElement *furniture = room->FirstChildElement();
+            while (furniture != NULL)
+            {
+                if (!strcmp(furniture->Name(), "Furniture"))
+                {
+                    XMLElement *items = furniture->FirstChildElement();
+                    while (items != NULL)
+                    {
+                        if (!strcmp(items->Name(), "Item"))
+                        {
+                            if (items->IntAttribute("id") == id)
+                                return items;
+                        }
+                        items = items->NextSiblingElement();
+                    }
+                }
+                else
+                {
+                    if (furniture->FirstChildElement()->IntAttribute("id") == id)
+                        return furniture;
+                }
+
+                furniture = furniture->NextSiblingElement();
+            }
+            room = room->NextSiblingElement();
+        }
+        return NULL;
+    }
+
+    const char *findRoomByLocation()
+    {
     }
 
 public:
@@ -104,7 +197,22 @@ public:
         objectClass->InsertEndChild(transform);
         objectType->InsertEndChild(objectClass);
         roomElement->InsertEndChild(objectType);
+        return true;
+    }
 
+    bool placeObjectOnFurniture(social_segway::Object item, social_segway::Object furniture)
+    {
+        return placeObjectOnFurnitureById(item.id, furniture.id);
+    }
+
+    bool placeObjectOnFurnitureById(int itemId, int furnitureId)
+    {
+        XMLElement *itemEle = getItemElementById(itemId);
+        XMLElement *furnitureEle = getFurnitureElementById(furnitureId);
+        if (itemEle == NULL || furnitureEle == NULL)
+            return false;
+
+        std::cout << "insert: " << furnitureEle->InsertEndChild(itemEle) << "\n\n";
         return true;
     }
 
@@ -136,32 +244,85 @@ public:
     std::vector<social_segway::Object> getLooseObjects()
     {
         std::vector<social_segway::Object> objects;
+        XMLElement *room = root->FirstChildElement();
 
+        while (room != NULL)
+        {
+            XMLElement *furniture = room->FirstChildElement();
+
+            while (furniture != NULL)
+            {
+                if (strcmp(furniture->Name(), "Furniture")) // any non-furniture
+                    objects.push_back(XMLElementToObject(furniture->FirstChildElement()));
+
+                furniture = furniture->NextSiblingElement();
+            }
+            room = room->NextSiblingElement();
+        }
         return objects;
     }
 
     std::vector<social_segway::Object> getAllFurniture()
     {
-        std::vector<social_segway::Object> furniture;
+        std::vector<social_segway::Object> furnitures;
+        XMLElement *room = root->FirstChildElement();
 
-        return furniture;
-    }
+        while (room != NULL)
+        {
+            XMLElement *furniture = room->FirstChildElement();
+            while (furniture != NULL)
+            {
+                if (!strcmp(furniture->Name(), "Furniture"))
+                {
+                    XMLElement *items = furniture->FirstChildElement();
+                    while (items != NULL)
+                    {
+                        furnitures.push_back(XMLElementToObject(items));
+                        items = items->NextSiblingElement();
+                    }
+                }
+                furniture = furniture->NextSiblingElement();
+            }
+            room = room->NextSiblingElement();
+        }
 
-    bool placeObjectOnFurniture(social_segway::Object item, social_segway::Object furniture)
-    {
-        
+        return furnitures;
     }
 
     std::vector<social_segway::Object> getAllObjects()
     {
         std::vector<social_segway::Object> objects;
-        
+        XMLElement *room = root->FirstChildElement();
+
+        while (room != NULL)
+        {
+            XMLElement *furniture = room->FirstChildElement();
+
+            while (furniture != NULL)
+            {
+                if (!strcmp(furniture->Name(), "Furniture"))
+                {
+                    XMLElement *items = furniture->FirstChildElement();
+                    while (items != NULL)
+                    {
+                        objects.push_back(XMLElementToObject(items));
+                        items = items->NextSiblingElement();
+                    }
+                }
+                else //loose object
+                    objects.push_back(XMLElementToObject(furniture->FirstChildElement()));
+
+                furniture = furniture->NextSiblingElement();
+            }
+            room = room->NextSiblingElement();
+        }
         return objects;
     }
 
     bool addObjectByPosition(social_segway::Object object)
     {
 
+        return true;
     }
 
     void saveMap()
@@ -176,9 +337,9 @@ void testSemanticDataHolderClass()
 {
     semantic_data_holder *map;
     map = new semantic_data_holder();
-    map->addRoom("dining room");
-    map->addRoom("bedroom");
-    map->addRoom("living room");
+    map->addRoom("Dining room");
+    map->addRoom("Bedroom");
+    map->addRoom("Living room");
 
     //ObjectStruct object;
     social_segway::Object object;
@@ -196,17 +357,45 @@ void testSemanticDataHolderClass()
     trans.rotation.w = 4.8;
     object.transform = trans;
 
-    map->addObjectToRoom("dining room", object);
+    map->addObjectToRoom("Dining room", object);
     object.id = 2;
-    map->addObjectToRoom("dining room", object);
+    object.objectClass = "Sofa";
+    map->addObjectToRoom("Dining room", object);
+    object.id = 3;
+    object.objectClass = "Bottle";
+    object.type = "Item";
+    map->addObjectToRoom("Dining room", object);
+    object.id = 4;
+    object.objectClass = "Laptop";
+    map->addObjectToRoom("Dining room", object);
 
-    auto objects = map->getObjectsInRoom("dining room");
+    auto objects = map->getObjectsInRoom("Dining room");
     std::cout << objects.size() << std::endl;
     for (auto object : objects)
     {
         std::cout << object << ", ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl
+              << "\n\n\n";
+
+    auto objectEles = map->getAllObjects();
+    std::cout << "Total object count: " << objectEles.size() << "\n";
+    for (auto object : objectEles)
+        std::cout << "Object: " << object.id << ", " << object.type << ", " << object.objectClass << ", "
+                  << object.transform.translation.x << ", " << object.transform.rotation.x << "\n";
+
+    objectEles = map->getAllFurniture();
+
+    std::cout << "Total furniture count: " << objectEles.size() << "\n";
+    for (auto object : objectEles)
+        std::cout << "Furniture: " << object.objectClass << ", id: " << object.id << "\n";
+
+    objectEles = map->getLooseObjects();
+    std::cout << "Loose objects: " << objectEles.size() << "\n";
+    for (auto object : objectEles)
+        std::cout << "Item: " << object.objectClass << ", id: " << object.id << "\n";
+
+    std::cout << "Placeobjectonfurniturebyid(4,2): " << map->placeObjectOnFurnitureById(4, 2) << "\n";
 
     map->saveMap();
 }
@@ -214,5 +403,6 @@ void testSemanticDataHolderClass()
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "semantic_node");
+    testSemanticDataHolderClass();
     return 0;
 }
