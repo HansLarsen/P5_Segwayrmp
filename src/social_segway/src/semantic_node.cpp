@@ -231,7 +231,8 @@ public:
     void detectionCallback(const social_segway::ObjectList& data){
 
         for (auto detectedObject : data.objects){
-            std::list<social_segway::Object> allObjects;//auto allObjects = map->getAllObjects();
+            //std::list<social_segway::Object> allObjects;
+            auto allObjects = map->getAllObjects();
             for (auto object : allObjects){ 
                 if (((detectedObject.transform.translation.x < object.transform.translation.x + allowedDeviation &&
                     detectedObject.transform.translation.x > object.transform.translation.x - allowedDeviation) ||
@@ -242,7 +243,7 @@ public:
                     (detectedObject.objectClass == object.objectClass &&
                     detectedObject.type == object.type)){
                     
-                    // Merge items: detectedObject and object (or ignore detectedobject?)
+                    // Merge items: detectedObject and object (or ignore detectedObject?)
                     continue;
                 }
                 else{ // add item to list
@@ -254,7 +255,7 @@ public:
                     newObject.type = detectedObject.type;
                     newObject.objectClass = detectedObject.objectClass;
 
-                    //map->addObjectToRoom(newObject);
+                    map->addObjectByPosition(newObject);
 
                     // Check if newobject is on top of furniture object
                     if (newObject.type == "Object" && object.type == "Furniture" &&
@@ -272,7 +273,7 @@ public:
                             (newObject.transform.translation.y < object.transform.translation.y + allowedDeviation2 &&
                             newObject.transform.translation.y > object.transform.translation.y - allowedDeviation2)){
 
-                            //map->addStuffOnStuff(newObject, object)
+                            map->placeObjectOnFurniture(newObject, object);
                         }
                     }                    
                 }
