@@ -477,7 +477,7 @@ class Semantic_node
 
     ros::Subscriber detectionSub;
     ros::Timer timer;
-    semantic_data_holder* map;
+    Semantic_data_holder* map;
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
@@ -553,7 +553,7 @@ public:
 
     Semantic_node(ros::NodeHandle* nh)
     {
-        map = new semantic_data_holder();
+        map = new Semantic_data_holder();
         detectionSub = nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
     }
