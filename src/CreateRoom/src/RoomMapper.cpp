@@ -2,7 +2,7 @@
 #include "geometry_msgs/PointStamped.h"
 #include <vector>
 #include <string>
-#include "semantic_map/Rvizcommand.h"
+#include "CreateRoom/Rvizcommand.h"
 #include <fstream>
 
 
@@ -74,8 +74,8 @@ void callback(const geometry_msgs::PointStamped::ConstPtr &point){
 
 
 
-bool command(semantic_map::Rvizcommand::Request  &req,
-         semantic_map::Rvizcommand::Response &res)
+bool command(CreateRoom::Rvizcommand::Request  &req,
+         CreateRoom::Rvizcommand::Response &res)
 {   
     if(req.a == slet){
         rooms.erase(rooms.begin()+req.b);
@@ -90,7 +90,7 @@ bool command(semantic_map::Rvizcommand::Request  &req,
     }
     else if(req.a == publish){
 
-        MapRoom.open ("/home/ros/catkin_ws/src/semantic_map/map/MapRoom.xml",std::ios::out);
+        MapRoom.open ("/home/ros/catkin_ws/src/CreateRoom/map/MapRoom.xml",std::ios::out);
 
         for(std::vector<Room>::iterator it = rooms.begin(); it != rooms.end(); it++) { 
             
