@@ -1,0 +1,12 @@
+<room name="Test room">
+	<pos x="-2" y="-2" />
+	<pos x="2" y="2" />
+</room>
+<room name="Bedroom">
+	<pos x="2" y="2" />
+	<pos x="20" y="20" />
+</room>
+<room name="Dining Room">
+	<pos x="-20" y="-20" />
+	<pos x="-2" y="-2" />
+</room>
