@@ -7,6 +7,8 @@
 #include "std_srvs/Trigger.h"
 #include <vector>
 #include <string>
+#include <signal.h>
+#include <cmath>
 
 using namespace xml_lib;
 
@@ -502,6 +504,8 @@ class Semantic_node
     float allowedDeviation = 5; // idk just some value for now
     float allowedDeviation2;
     int idCounter;
+    double distance;
+    float x1, y1, z1, x2, y2, z2;
 
     ros::Subscriber detectionSub;
     ros::Timer timer;
@@ -509,30 +513,32 @@ class Semantic_node
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
-        for (social_segway::Object detectedObject : data.objects)
+        auto allObjects = map->getAllObjects();
+        if (allObjects.size() == 0) // no objects yet, add first:
         {
+            // add item to list
+            detectedObject.id = idCounter;
+            idCounter++;
+            map->addObjectToRoom("Unknown", detectedObject);
+            continue;
+        }
+        for (auto detectedObject : data.objects)
+        {
+            x1 = detectedObject.transform.translation.x;
+            y1 = detectedObject.transform.translation.y;
+            z1 = detectedObject.transform.translation.z;
+
             auto allObjects = map->getAllObjects();
-            if (allObjects.size() == 0) // no objects yet, add first:
-            {
-                // add item to list
-                detectedObject.id = idCounter;
-                idCounter++;
-                map->addObjectToRoom("Unknown", detectedObject);
-                continue;
-            } 
             for (auto object : allObjects)
             {
+                x2 = object.transform.translation.x;
+                y2 = object.transform.translation.y;
+                z2 = object.transform.translation.z;
 
-                if (((detectedObject.transform.translation.x < object.transform.translation.x + allowedDeviation &&
-                      detectedObject.transform.translation.x > object.transform.translation.x - allowedDeviation) ||
-                     (detectedObject.transform.translation.y < object.transform.translation.y + allowedDeviation &&
-                      detectedObject.transform.translation.y > object.transform.translation.y - allowedDeviation) ||
-                     (detectedObject.transform.translation.z < object.transform.translation.z + allowedDeviation &&
-                      detectedObject.transform.translation.z > object.transform.translation.z - allowedDeviation)) &&
-                    (detectedObject.objectClass == object.objectClass &&
-                     detectedObject.type == object.type))
+                distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
+
+                if (distance < allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
                 {
-
                     // Merge items: detectedObject and object (or ignore detectedObject?)
                     continue;
                     mergeObjects(detectedObject, object);
@@ -551,15 +557,23 @@ class Semantic_node
     { // Check if LooseObject is on top of Furniture object
 
         auto allFurniture = map->getAllFurniture();
-        auto allLooseObjects = map->getLooseObjects();
-
         for (auto Furniture : allFurniture)
         {
+            x1 = Furniture.transform.translation.x;
+            y1 = Furniture.transform.translation.y;
+            z1 = Furniture.transform.translation.z;
+
+            auto allLooseObjects = map->getLooseObjects();
             for (auto LooseObject : allLooseObjects)
             {
+                x2 = LooseObject.transform.translation.x;
+                y2 = LooseObject.transform.translation.y;
+                z2 = LooseObject.transform.translation.z;
 
-                if (LooseObject.transform.translation.z > Furniture.transform.translation.z)
-                {
+                distance = std::hypot(x1 - x2, y1 - y2);
+
+                if (z2 > z1)
+                { // if higher
 
                     if (Furniture.objectClass == "dinner_table")
                         allowedDeviation2 = 1; // estimated radius of the Furniture upper surface
@@ -567,11 +581,9 @@ class Semantic_node
                         allowedDeviation2 = 2;
                     else if (Furniture.objectClass == "coffee_table")
                         allowedDeviation2 = 0.5;
+                    //ect
 
-                    if ((LooseObject.transform.translation.x < Furniture.transform.translation.x + allowedDeviation2 &&
-                         LooseObject.transform.translation.x > Furniture.transform.translation.x - allowedDeviation2) ||
-                        (LooseObject.transform.translation.y < Furniture.transform.translation.y + allowedDeviation2 &&
-                         LooseObject.transform.translation.y > Furniture.transform.translation.y - allowedDeviation2))
+                    if (distance < allowedDeviation2)
                     {
 
                         map->placeObjectOnFurniture(LooseObject, Furniture);
@@ -594,15 +606,32 @@ public:
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
         idCounter = 1;
     }
+
+    ~Semantic_node()
+    {
+        map->saveMap();
+    }
 };
+
+static volatile int keepRunning = 1;
+
+void intHandler(int dummy)
+{
+    keepRunning = 0;
+}
 
 int main(int argc, char **argv)
 {
+    signal(SIGINT, intHandler);
     ros::init(argc, argv, "semantic_node");
     ros::NodeHandle n;
     Semantic_node *node;
     node = new Semantic_node(&n);
-    ros::spin();
+
+    while (keepRunning)
+    {
+        ros::spin();
+    }
 
     return 0;
 }
