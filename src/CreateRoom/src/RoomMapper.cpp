@@ -90,7 +90,7 @@ bool command(CreateRoom::Rvizcommand::Request  &req,
     }
     else if(req.a == publish){
 
-        MapRoom.open ("/home/ros/catkin_ws/src/CreateRoom/map/MapRoom.xml",std::ios::out);
+        MapRoom.open ("MapRoom.xml",std::ios::out);
 
         for(std::vector<Room>::iterator it = rooms.begin(); it != rooms.end(); it++) { 
             
