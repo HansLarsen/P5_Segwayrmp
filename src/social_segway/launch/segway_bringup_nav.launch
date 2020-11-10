@@ -2,7 +2,6 @@
 <launch>
 	<group ns="segway">
 		<remap from="segway_rmp_node/odom" to="/odom" />
-		<remap from="scan_filtered" to="/scan" />
 		<include file="$(find social_segway)/launch/segway_with_lidar.launch">
 		</include>
 		<node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster_2" args="0 0 0.3 0 0 0 laser_mount_link laser 100" />
@@ -59,6 +58,7 @@
 	<!-- - Run gmapping -->
 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
 		<rosparam command="load" file="$(find segway_navigation_apps)/config/RMP_220/gmapping.yaml" />
+		<remap from="scan" to="/scan_filtered" />
 	</node>
 	<node pkg="joy" type="joy_node" name="joystick_driver">
 	</node>
