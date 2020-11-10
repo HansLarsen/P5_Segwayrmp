@@ -34,7 +34,9 @@ class Semantic_data_holder
         Point points[2];
     };
 
-    const char *file_name;
+    std::string file_name;
+    const char *room_map_name;
+
     XMLDocument *doc;
     XMLNode *root;
     XMLDocument *roomDoc;
@@ -211,7 +213,6 @@ class Semantic_data_holder
         addRoom("Unknown");
 
         //Read room document:
-        auto room_map_name = "rooms.xml";
         xml_lib::XMLError error = roomDoc->LoadFile(room_map_name);
         if (error != XML_SUCCESS)
         {
@@ -265,10 +266,13 @@ public:
     Semantic_data_holder(ros::NodeHandle *nh)
     {
         std::string pkg_path = ros::package::getPath("social_segway");
-        pkg_path += "/xml/map.xml";
-        std::string file_path = "~" + pkg_path;
-        file_name = file_path.c_str();
-        file_name = "map.xml";
+        std::string map_path = pkg_path + "/map/map.xml";
+        std::string room_path = pkg_path + "/map/rooms.xml";
+
+        file_name = map_path;
+        room_map_name = room_path.c_str();
+        ROS_INFO_STREAM("file_name: " << file_name);
+        ROS_INFO_STREAM("room_map_name: " << room_map_name);
 
         service_save_map = nh->advertiseService("save_map", &Semantic_data_holder::saveMap_callback, this);
         service_reset_map = nh->advertiseService("reset_map", &Semantic_data_holder::resetMap_callback, this);
@@ -277,7 +281,7 @@ public:
         doc = new XMLDocument();
         roomDoc = new XMLDocument();
 
-        XMLError error = doc->LoadFile(file_name);
+        XMLError error = doc->LoadFile(file_name.c_str());
         if (error == XML_SUCCESS)
         {
             //delete old map
@@ -446,9 +450,9 @@ public:
 
     void saveMap()
     {
-        XMLError error = doc->SaveFile(file_name);
+        XMLError error = doc->SaveFile(file_name.c_str());
         XMLCheckResult(error);
-        ROS_INFO_STREAM("Saved semantic map");
+        ROS_INFO_STREAM("Saved semantic map at: " << file_name.c_str());
     }
 };
 
@@ -643,7 +647,6 @@ public:
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
         idCounter = 1;
     }
-
 };
 
 int main(int argc, char **argv)
