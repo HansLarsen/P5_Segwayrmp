@@ -173,7 +173,9 @@ target_link_libraries(semantic_node
 #   scripts/my_python_script
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
-catkin_install_python(PROGRAMS scripts/socialist/socialist.py 
+catkin_install_python(PROGRAMS 
+  scripts/socialist/socialist.py
+  scripts/semantic_test.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
