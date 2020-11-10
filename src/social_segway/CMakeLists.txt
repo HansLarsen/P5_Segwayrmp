@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   segway_rmp
   std_msgs
+  std_srvs
   xml_lib
   roslib
 )
