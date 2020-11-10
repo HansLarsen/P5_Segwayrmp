@@ -165,7 +165,7 @@ class Semantic_data_holder
         return NULL;
     }
 
-    const char *getRoomByPosition(float x, float y)
+    std::string getRoomByPosition(float x, float y)
     {
 
         for (auto room : roomVector)
@@ -193,7 +193,10 @@ class Semantic_data_holder
                     inY = true;
             }
             if (inX && inY)
-                return room.name.c_str();
+            {
+                //ROS_INFO_STREAM("room.name.c_str(): " << room.name);
+                return room.name;
+            }
         }
         return "Unknown";
     }
@@ -201,9 +204,46 @@ class Semantic_data_holder
     void saveMap(bool); //placeholder function
     void resetMap()
     {
+        doc->Clear();
         root = doc->NewElement("map");
         doc->InsertFirstChild(root);
+        roomVector.clear();
         addRoom("Unknown");
+
+        //Read room document:
+        auto room_map_name = "rooms.xml";
+        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name);
+        if (error != XML_SUCCESS)
+        {
+            ROS_ERROR_STREAM("FAILED TO OPEN \"rooms.xml\" KILLING SEMANTIC NODE");
+            exit(-1);
+        }
+        auto room = roomDoc->FirstChildElement();
+        while (room != NULL)
+        {
+            RoomStruct roomStr;
+            roomStr.name = room->Attribute("name");
+            //ROS_INFO_STREAM("roomstr.name: " << roomStr.name);
+
+            auto posElement = room->FirstChildElement();
+            for (int i = 0; i < 2; i++)
+            {
+                Point point;
+                point.x = posElement->FloatAttribute("x");
+                point.y = posElement->FloatAttribute("y");
+                roomStr.points[i] = point;
+                posElement = posElement->NextSiblingElement();
+            }
+
+            addRoom(room->Attribute("name"));
+            room = room->NextSiblingElement();
+            roomVector.push_back(roomStr);
+        }
+        std::cout << "roomVec: \n";
+        for (auto a : roomVector)
+        {
+            std::cout << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y << "\n";
+        }
     }
 
     bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
@@ -235,6 +275,7 @@ public:
         //ROS_INFO_STREAM("Creating map in: ");
         //ROS_INFO_STREAM(file_name);
         doc = new XMLDocument();
+        roomDoc = new XMLDocument();
 
         XMLError error = doc->LoadFile(file_name);
         if (error == XML_SUCCESS)
@@ -243,33 +284,6 @@ public:
             doc->Clear();
         }
         resetMap();
-
-        //Read room document:
-        auto room_map_name = "rooms.xml";
-        roomDoc = new XMLDocument();
-        error = roomDoc->LoadFile(room_map_name);
-        if (error != XML_SUCCESS)
-        {
-            ROS_ERROR_STREAM("FAILED TO OPEN \"rooms.xml\" KILLING SEMANTIC NODE");
-            exit(-1);
-        }
-        auto room = roomDoc->FirstChildElement();
-        while (room != NULL)
-        {
-            RoomStruct roomStr;
-            roomStr.name = room->Name();
-
-            auto posElement = room->FirstChildElement();
-            for (int i = 0; i < 2; i++)
-            {
-                Point point;
-                point.x = posElement->FloatAttribute("x");
-                point.y = posElement->FloatAttribute("y");
-                roomStr.points[i] = point;
-            }
-            room = room->NextSiblingElement();
-            roomVector.push_back(roomStr);
-        }
     }
 
     void addRoom(const char *room)
@@ -299,6 +313,13 @@ public:
         return true;
     }
 
+    bool addObjectByPosition(social_segway::Object object)
+    {
+        auto room = getRoomByPosition(object.transform.translation.x, object.transform.translation.y);
+        //ROS_INFO_STREAM("addObjectByPos room = " << room);
+        return addObjectToRoom(room.c_str(), object);
+    }
+
     bool placeObjectOnFurniture(social_segway::Object item, social_segway::Object furniture)
     {
         return placeObjectOnFurnitureById(item.id, furniture.id);
@@ -311,7 +332,7 @@ public:
         if (itemEle == NULL || furnitureEle == NULL)
             return false;
 
-        std::cout << "insert: " << furnitureEle->InsertEndChild(itemEle) << "\n\n";
+        std::cout << "insert: " << (bool)furnitureEle->InsertEndChild(itemEle) << "\n\n";
         return true;
     }
 
@@ -376,7 +397,8 @@ public:
                     XMLElement *items = furniture->FirstChildElement();
                     while (items != NULL)
                     {
-                        furnitures.push_back(XMLElementToObject(items));
+                        if (strcmp(items->Name(), "Item"))
+                            furnitures.push_back(XMLElementToObject(items));
                         items = items->NextSiblingElement();
                     }
                 }
@@ -404,7 +426,11 @@ public:
                     XMLElement *items = furniture->FirstChildElement();
                     while (items != NULL)
                     {
-                        objects.push_back(XMLElementToObject(items));
+                        if (strcmp(items->Name(), "Item"))
+                            objects.push_back(XMLElementToObject(items));
+                        else
+                            objects.push_back(XMLElementToObject(items->FirstChildElement()));
+
                         items = items->NextSiblingElement();
                     }
                 }
@@ -418,16 +444,11 @@ public:
         return objects;
     }
 
-    bool addObjectByPosition(social_segway::Object object)
-    {
-        auto room = getRoomByPosition(object.transform.translation.x, object.transform.translation.y);
-        return addObjectToRoom(room, object);
-    }
     void saveMap()
     {
-        ROS_INFO_STREAM("Saving semantic map");
         XMLError error = doc->SaveFile(file_name);
         XMLCheckResult(error);
+        ROS_INFO_STREAM("Saved semantic map");
     }
 };
 
@@ -513,22 +534,25 @@ class Semantic_node
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
-        auto allObjects = map->getAllObjects();
-        if (allObjects.size() == 0) // no objects yet, add first:
-        {
-            // add item to list
-            detectedObject.id = idCounter;
-            idCounter++;
-            map->addObjectToRoom("Unknown", detectedObject);
-            continue;
-        }
         for (auto detectedObject : data.objects)
         {
+            //ROS_INFO_STREAM("for loop");
+            auto allObjects = map->getAllObjects();
+            //ROS_INFO_STREAM("allObjects.size(): " << allObjects.size());
+            if (allObjects.size() == 0) // no objects yet, add first:
+            {
+                //ROS_INFO_STREAM("no objects yet");
+                // add item to list
+                detectedObject.id = idCounter;
+                idCounter++;
+                map->addObjectByPosition(detectedObject);
+                continue;
+            }
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
             z1 = detectedObject.transform.translation.z;
 
-            auto allObjects = map->getAllObjects();
+            bool merged = false;
             for (auto object : allObjects)
             {
                 x2 = object.transform.translation.x;
@@ -539,24 +563,30 @@ class Semantic_node
 
                 if (distance < allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
                 {
+                    merged = true;
                     // Merge items: detectedObject and object (or ignore detectedObject?)
-                    continue;
+                    //ROS_INFO_STREAM("MERGING");
+                    break; // to avoid mergeObjects func
                     mergeObjects(detectedObject, object);
+                    break; //
                 }
-                else
-                { // add item to list
-                    detectedObject.id = idCounter;
-                    idCounter++;
-                    map->addObjectToRoom("Unknown", detectedObject);
-                }
+            }
+            if (!merged)
+            {
+                // add item to list
+                ROS_INFO_STREAM("Adding new item: " << detectedObject.objectClass);
+                detectedObject.id = idCounter;
+                idCounter++;
+                map->addObjectByPosition(detectedObject);
             }
         }
     }
 
     void checkOnTopTimerCallback(const ros::TimerEvent &)
     { // Check if LooseObject is on top of Furniture object
-
         auto allFurniture = map->getAllFurniture();
+        //ROS_INFO_STREAM("Checking On Top, allFurniture.size(): " << allFurniture.size());
+
         for (auto Furniture : allFurniture)
         {
             x1 = Furniture.transform.translation.x;
@@ -564,6 +594,7 @@ class Semantic_node
             z1 = Furniture.transform.translation.z;
 
             auto allLooseObjects = map->getLooseObjects();
+            //ROS_INFO_STREAM("#loose objecst: " << allLooseObjects.size());
             for (auto LooseObject : allLooseObjects)
             {
                 x2 = LooseObject.transform.translation.x;
@@ -574,6 +605,7 @@ class Semantic_node
 
                 if (z2 > z1)
                 { // if higher
+                    //ROS_INFO_STREAM("Checking On Top, object is higher!");
 
                     if (Furniture.objectClass == "dinner_table")
                         allowedDeviation2 = 1; // estimated radius of the Furniture upper surface
@@ -581,12 +613,17 @@ class Semantic_node
                         allowedDeviation2 = 2;
                     else if (Furniture.objectClass == "coffee_table")
                         allowedDeviation2 = 0.5;
+                    else
+                        allowedDeviation2 = 0.2;
                     //ect
 
                     if (distance < allowedDeviation2)
                     {
-
-                        map->placeObjectOnFurniture(LooseObject, Furniture);
+                        //ROS_INFO_STREAM("placeobjetonfurin");
+                        if (map->placeObjectOnFurniture(LooseObject, Furniture))
+                            ROS_INFO_STREAM("placement success");
+                        else
+                            ROS_ERROR_STREAM("failed to place item on furniture");
                     }
                 }
             }
@@ -607,31 +644,15 @@ public:
         idCounter = 1;
     }
 
-    ~Semantic_node()
-    {
-        map->saveMap();
-    }
 };
-
-static volatile int keepRunning = 1;
-
-void intHandler(int dummy)
-{
-    keepRunning = 0;
-}
 
 int main(int argc, char **argv)
 {
-    signal(SIGINT, intHandler);
     ros::init(argc, argv, "semantic_node");
     ros::NodeHandle n;
     Semantic_node *node;
     node = new Semantic_node(&n);
-
-    while (keepRunning)
-    {
-        ros::spin();
-    }
+    ros::spin();
 
     return 0;
 }
