@@ -37,7 +37,8 @@ class Semantic_data_holder
     XMLNode *root;
     XMLDocument *roomDoc;
     std::vector<RoomStruct> roomVector;
-    ros::ServiceServer service;
+    ros::ServiceServer service_save_map;
+    ros::ServiceServer service_reset_map;
 
     XMLElement *TransformToXML(geometry_msgs::Transform transform)
     {
@@ -196,12 +197,25 @@ class Semantic_data_holder
     }
 
     void saveMap(bool); //placeholder function
+    void resetMap()
+    {
+        root = doc->NewElement("map");
+        doc->InsertFirstChild(root);
+        addRoom("Unknown");
+    }
 
     bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
     {
         saveMap();
         response.success = true;
         response.message = "Saved map";
+        return true;
+    }
+    bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+    {
+        resetMap();
+        response.success = true;
+        response.message = "Reset map";
         return true;
     }
 
@@ -214,8 +228,8 @@ public:
         file_name = file_path.c_str();
         file_name = "map.xml";
 
-        service = nh->advertiseService("save_map", &Semantic_data_holder::saveMap_callback,this);
-
+        service_save_map = nh->advertiseService("save_map", &Semantic_data_holder::saveMap_callback, this);
+        service_reset_map = nh->advertiseService("reset_map", &Semantic_data_holder::resetMap_callback, this);
         //ROS_INFO_STREAM("Creating map in: ");
         //ROS_INFO_STREAM(file_name);
         doc = new XMLDocument();
@@ -226,9 +240,7 @@ public:
             //delete old map
             doc->Clear();
         }
-        root = doc->NewElement("map");
-        doc->InsertFirstChild(root);
-        addRoom("Unknown");
+        resetMap();
 
         //Read room document:
         auto room_map_name = "rooms.xml";
