@@ -4,6 +4,7 @@
 #include "social_segway/Object.h"
 #include "social_segway/ObjectList.h"
 #include "geometry_msgs/Transform.h"
+#include "std_srvs/Trigger.h"
 #include <vector>
 #include <string>
 #include <signal.h>
@@ -38,6 +39,8 @@ class Semantic_data_holder
     XMLNode *root;
     XMLDocument *roomDoc;
     std::vector<RoomStruct> roomVector;
+    ros::ServiceServer service_save_map;
+    ros::ServiceServer service_reset_map;
 
     XMLElement *TransformToXML(geometry_msgs::Transform transform)
     {
@@ -189,13 +192,37 @@ class Semantic_data_holder
                 if (y < room.points[0].y && y > room.points[1].y)
                     inY = true;
             }
-            if(inX && inY)
+            if (inX && inY)
                 return room.name.c_str();
         }
+        return "Unknown";
+    }
+
+    void saveMap(bool); //placeholder function
+    void resetMap()
+    {
+        root = doc->NewElement("map");
+        doc->InsertFirstChild(root);
+        addRoom("Unknown");
+    }
+
+    bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+    {
+        saveMap();
+        response.success = true;
+        response.message = "Saved map";
+        return true;
+    }
+    bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+    {
+        resetMap();
+        response.success = true;
+        response.message = "Reset map";
+        return true;
     }
 
 public:
-    Semantic_data_holder()
+    Semantic_data_holder(ros::NodeHandle *nh)
     {
         std::string pkg_path = ros::package::getPath("social_segway");
         pkg_path += "/xml/map.xml";
@@ -203,6 +230,8 @@ public:
         file_name = file_path.c_str();
         file_name = "map.xml";
 
+        service_save_map = nh->advertiseService("save_map", &Semantic_data_holder::saveMap_callback, this);
+        service_reset_map = nh->advertiseService("reset_map", &Semantic_data_holder::resetMap_callback, this);
         //ROS_INFO_STREAM("Creating map in: ");
         //ROS_INFO_STREAM(file_name);
         doc = new XMLDocument();
@@ -213,8 +242,7 @@ public:
             //delete old map
             doc->Clear();
         }
-        root = doc->NewElement("map");
-        doc->InsertFirstChild(root);
+        resetMap();
 
         //Read room document:
         auto room_map_name = "rooms.xml";
@@ -395,7 +423,6 @@ public:
         auto room = getRoomByPosition(object.transform.translation.x, object.transform.translation.y);
         return addObjectToRoom(room, object);
     }
-
     void saveMap()
     {
         ROS_INFO_STREAM("Saving semantic map");
@@ -404,10 +431,10 @@ public:
     }
 };
 
-void testSemanticDataHolderClass()
+void testSemanticDataHolderClass(ros::NodeHandle *nh)
 {
     Semantic_data_holder *map;
-    map = new Semantic_data_holder();
+    map = new Semantic_data_holder(nh);
     map->addRoom("Dining room");
     map->addRoom("Bedroom");
     map->addRoom("Living room");
@@ -482,16 +509,16 @@ class Semantic_node
 
     ros::Subscriber detectionSub;
     ros::Timer timer;
-    Semantic_data_holder* map;
+    Semantic_data_holder *map;
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
         for (auto detectedObject : data.objects){
-            auto allObjects = map->getAllObjects();
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
             z1 = detectedObject.transform.translation.z;
 
+            auto allObjects = map->getAllObjects();
             for (auto object : allObjects){ 
                 x2 = object.transform.translation.x;
                 y2 = object.transform.translation.y;
@@ -507,20 +534,20 @@ class Semantic_node
                 else{ // add item to list
                     map->addObjectByPosition(detectedObject);
                 }
-            }        
-        }    
+            }
+        }
     }
 
-    void checkOnTopTimerCallback(const ros::TimerEvent&){ // Check if LooseObject is on top of Furniture object
+    void checkOnTopTimerCallback(const ros::TimerEvent &)
+    { // Check if LooseObject is on top of Furniture object
 
         auto allFurniture = map->getAllFurniture();
-        auto allLooseObjects = map->getLooseObjects();
-
         for (auto Furniture : allFurniture){
             x1 = Furniture.transform.translation.x;
             y1 = Furniture.transform.translation.y;
             z1 = Furniture.transform.translation.z;
 
+            auto allLooseObjects = map->getLooseObjects();
             for (auto LooseObject: allLooseObjects){
                 x2 = LooseObject.transform.translation.x;
                 y2 = LooseObject.transform.translation.y;
@@ -532,7 +559,7 @@ class Semantic_node
 
                     if (Furniture.objectClass == "dinner_table")
                         allowedDeviation2 = 1; // estimated radius of the Furniture upper surface
-                    else if(Furniture.objectClass == "shelve")
+                    else if (Furniture.objectClass == "shelve")
                         allowedDeviation2 = 2;
                     else if(Furniture.objectClass == "coffee_table")
                         allowedDeviation2 = 0.5;
@@ -547,16 +574,16 @@ class Semantic_node
         }
     }
 
-    bool mergeObjects(social_segway::Object detectedObject, social_segway::Object object){
+    bool mergeObjects(social_segway::Object detectedObject, social_segway::Object object)
+    {
         //Merge somehow
     }
 
 public:
-
-    Semantic_node(ros::NodeHandle* nh)
+    Semantic_node(ros::NodeHandle *nh)
     {
-        map = new Semantic_data_holder();
-        detectionSub = nh->subscribe("Detected_Objects", 1000, &Semantic_node::detectionCallback, this);
+        map = new Semantic_data_holder(nh);
+        detectionSub = nh->subscribe("detected_Objects", 1000, &Semantic_node::detectionCallback, this);
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
     }
 
@@ -578,10 +605,10 @@ void intHandler(int dummy) {
 int main(int argc, char **argv)
 {
     signal(SIGINT, intHandler);
-    Semantic_data_holder *map = new Semantic_data_holder();
-
     ros::init(argc, argv, "semantic_node");
     ros::NodeHandle n;
+    Semantic_node *node;
+    node = new Semantic_node(&n);
 
     while (keepRunning)
     {
