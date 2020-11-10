@@ -2,7 +2,6 @@
 <launch>
 	<group ns="segway">
 		<remap from="segway_rmp_node/odom" to="/odom" />
-		<remap from="scan_filtered" to="/scan" />
 		<include file="$(find social_segway)/launch/segway_with_lidar.launch">
 		</include>
 		<node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster_2" args="0 0 0.3 0 0 0 laser_mount_link laser 100" />
@@ -28,10 +27,10 @@
 		<remap from="move_base/feedback" to="move_base_navi/feedback" />
 		<remap from="move_base/status" to="move_base_navi/status" />
 		<remap from="move_base/cancel" to="move_base_navi/cancel" />
-		<remap from="move_base_simple/goal" to="move_base_navi_simple/goal" />
-		<!-- Load common configuration files -->
+		<!-- Load common configuration files
+
+		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />  -->
 		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/base_planner_params.yaml" command="load" />
-		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />
 		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
 		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
 		<!-- Load global/local costmap specific parameters -->
@@ -59,6 +58,7 @@
 	<!-- - Run gmapping -->
 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
 		<rosparam command="load" file="$(find segway_navigation_apps)/config/RMP_220/gmapping.yaml" />
+		<remap from="scan" to="/scan_filtered" />
 	</node>
 	<node pkg="joy" type="joy_node" name="joystick_driver">
 	</node>
