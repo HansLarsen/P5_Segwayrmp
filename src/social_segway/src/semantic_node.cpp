@@ -501,6 +501,7 @@ class Semantic_node
 
     float allowedDeviation = 5; // idk just some value for now
     float allowedDeviation2;
+    int idCounter;
 
     ros::Subscriber detectionSub;
     ros::Timer timer;
@@ -508,10 +509,17 @@ class Semantic_node
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
-
-        for (auto detectedObject : data.objects)
+        for (social_segway::Object detectedObject : data.objects)
         {
             auto allObjects = map->getAllObjects();
+            if (allObjects.size() == 0) // no objects yet, add first:
+            {
+                // add item to list
+                detectedObject.id = idCounter;
+                idCounter++;
+                map->addObjectToRoom("Unknown", detectedObject);
+                continue;
+            } 
             for (auto object : allObjects)
             {
 
@@ -531,15 +539,9 @@ class Semantic_node
                 }
                 else
                 { // add item to list
-                    social_segway::Object newObject;
-                    newObject.id = detectedObject.id;
-                    newObject.transform.translation.x = detectedObject.transform.translation.x;
-                    newObject.transform.translation.y = detectedObject.transform.translation.y;
-                    newObject.transform.translation.z = detectedObject.transform.translation.z;
-                    newObject.type = detectedObject.type;
-                    newObject.objectClass = detectedObject.objectClass;
-
-                    map->addObjectByPosition(newObject);
+                    detectedObject.id = idCounter;
+                    idCounter++;
+                    map->addObjectToRoom("Unknown", detectedObject);
                 }
             }
         }
@@ -588,8 +590,9 @@ public:
     Semantic_node(ros::NodeHandle *nh)
     {
         map = new Semantic_data_holder(nh);
-        detectionSub = nh->subscribe("detected_Objects", 1000, &Semantic_node::detectionCallback, this);
+        detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
+        idCounter = 1;
     }
 };
 
