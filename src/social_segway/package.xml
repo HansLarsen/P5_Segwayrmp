@@ -67,6 +67,7 @@
   <depend>xml_lib</depend>
   <depend>roslib</depend>
   <depend>std_srvs</depend>
+  <depend>visualization_msgs</depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->
