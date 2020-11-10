@@ -5,6 +5,8 @@
 #include "social_segway/ObjectList.h"
 #include "geometry_msgs/Transform.h"
 #include "std_srvs/Trigger.h"
+#include "visualization_msgs/MarkerArray.h"
+#include "visualization_msgs/Marker.h"
 #include <vector>
 #include <string>
 #include <signal.h>
@@ -533,6 +535,7 @@ class Semantic_node
     float x1, y1, z1, x2, y2, z2;
 
     ros::Subscriber detectionSub;
+    ros::Publisher markerPub;
     ros::Timer timer;
     Semantic_data_holder *map;
 
@@ -586,8 +589,9 @@ class Semantic_node
         }
     }
 
-    void checkOnTopTimerCallback(const ros::TimerEvent &)
-    { // Check if LooseObject is on top of Furniture object
+    void checkOnTopAll()
+    {
+        // Check if LooseObject is on top of Furniture object
         auto allFurniture = map->getAllFurniture();
         //ROS_INFO_STREAM("Checking On Top, allFurniture.size(): " << allFurniture.size());
 
@@ -634,6 +638,58 @@ class Semantic_node
         }
     }
 
+    void publishMarkers()
+    {
+        auto objects = map->getAllObjects();
+        std::vector<visualization_msgs::Marker> markerArray;
+        for (int i = 0; i < objects.size(); i++)
+        {
+            visualization_msgs::Marker marker;
+            marker.header.frame_id = "map";
+            marker.header.stamp = ros::Time();
+            marker.ns = "semantic_map";
+            marker.id = i;
+            marker.type = visualization_msgs::Marker::SPHERE;
+            marker.action = visualization_msgs::Marker::ADD;
+            marker.pose.position.x = objects[i].transform.translation.x;
+            marker.pose.position.y = objects[i].transform.translation.y;
+            marker.pose.position.z = objects[i].transform.translation.z;
+            marker.pose.orientation.x = objects[i].transform.rotation.x;
+            marker.pose.orientation.y = objects[i].transform.rotation.y;
+            marker.pose.orientation.z = objects[i].transform.rotation.z;
+            marker.pose.orientation.w = objects[i].transform.rotation.w;
+            marker.scale.x = 0.1;
+            marker.scale.y = 0.1;
+            marker.scale.z = 0.1;
+            marker.color.a = 1.0; // Don't forget to set the alpha!
+            if (objects[i].type == "Item")
+            {
+                marker.color.r = 0.0;
+                marker.color.g = 1.0;
+                marker.color.b = 0.0;
+            }
+            else
+            {
+                marker.color.r = 1.0;
+                marker.color.g = 0.0;
+                marker.color.b = 0.0;
+            }
+
+            marker.lifetime = ros::Duration(1.1);
+            markerArray.push_back(marker);
+        }
+
+        visualization_msgs::MarkerArray msg;
+        msg.markers = markerArray;
+        markerPub.publish(msg);
+    }
+
+    void OneSecTimerCallback(const ros::TimerEvent &)
+    {
+        checkOnTopAll();
+        publishMarkers();
+    }
+
     bool mergeObjects(social_segway::Object detectedObject, social_segway::Object object)
     {
         //Merge somehow
@@ -644,7 +700,9 @@ public:
     {
         map = new Semantic_data_holder(nh);
         detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
-        timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::checkOnTopTimerCallback, this);
+
+        markerPub = nh->advertise<visualization_msgs::MarkerArray>("map_markers", 10);
+        timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
         idCounter = 1;
     }
 };
