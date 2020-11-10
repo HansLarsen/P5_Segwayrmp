@@ -1,13 +1,13 @@
 #include "ros/ros.h"
-#include "CreateRoom/Rvizcommand.h"
+#include "create_room/Rvizcommand.h"
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "rvizcommand");
 
   ros::NodeHandle n;
-  ros::ServiceClient client = n.serviceClient<CreateRoom::Rvizcommand>("rvizcommand");
-  CreateRoom::Rvizcommand srv;
+  ros::ServiceClient client = n.serviceClient<create_room::Rvizcommand>("rvizcommand");
+  create_room::Rvizcommand srv;
   
   if(argc == 3){
   srv.request.a = argv[1];

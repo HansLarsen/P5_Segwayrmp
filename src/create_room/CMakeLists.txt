@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(CreateRoom)
+project(create_room)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -104,7 +104,7 @@ Rvizcommand.srv
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES CreateRoom
+#  LIBRARIES create_room
 #  CATKIN_DEPENDS roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -122,7 +122,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/CreateRoom.cpp
+#   src/${PROJECT_NAME}/create_room.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -133,7 +133,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/CreateRoom_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/create_room_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -197,7 +197,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_CreateRoom.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_create_room.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
@@ -205,14 +205,14 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-
-add_executable(RoomMapper src/RoomMapper.cpp)
-target_link_libraries(RoomMapper
+add_executable(room_mapper src/room_mapper.cpp)
+target_link_libraries(room_mapper
 ${catkin_LIBRARIES}
 )
-add_dependencies(RoomMapper CreateRoom_gencpp)
+add_dependencies(room_mapper create_room_gencpp)
 
 
-add_executable(RoomMapperTalker src/RoomMapperTalker.cpp)
-target_link_libraries(RoomMapperTalker ${catkin_LIBRARIES})
-add_dependencies(RoomMapperTalker CreateRoom_gencpp)
+
+add_executable(room_mapper_talker src/room_mapper_talker.cpp)
+target_link_libraries(room_mapper_talker ${catkin_LIBRARIES})
+add_dependencies(room_mapper_talker create_room_gencpp)
