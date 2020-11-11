@@ -216,7 +216,7 @@ public:
         xml_lib::XMLError error = roomDoc->LoadFile(room_map_name);
         if (error != XML_SUCCESS)
         {
-            ROS_ERROR_STREAM("FAILED TO OPEN \"rooms.xml\" KILLING SEMANTIC NODE");
+            ROS_ERROR_STREAM("FAILED TO OPEN " << room_map_name <<  " KILLING SEMANTIC NODE");
             exit(-1);
         }
         auto room = roomDoc->FirstChildElement();
@@ -240,17 +240,16 @@ public:
             room = room->NextSiblingElement();
             roomVector.push_back(roomStr);
         }
-        std::cout << "roomVec: \n";
-        for (auto a : roomVector)
-        {
-            std::cout << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y << "\n";
-        }
+
+        //for (auto a : roomVector)
+        //    ROS_INFO_STREAM("roomVec: " << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y );
+
     }
     
-    Semantic_data_holder(ros::NodeHandle *nh)
+    Semantic_data_holder(ros::NodeHandle *nh, std::string map_file_name)
     {
         std::string pkg_path = ros::package::getPath("social_segway");
-        std::string map_path = pkg_path + "/map/map.xml";
+        std::string map_path = pkg_path + "/map/" + map_file_name;
         std::string room_path = pkg_path + "/map/rooms.xml";
 
         file_name = map_path;
@@ -441,7 +440,7 @@ public:
 void testSemanticDataHolderClass(ros::NodeHandle *nh)
 {
     Semantic_data_holder *map;
-    map = new Semantic_data_holder(nh);
+    map = new Semantic_data_holder(nh, "test_map.xml");
     map->addRoom("Dining room");
     map->addRoom("Bedroom");
     map->addRoom("Living room");
@@ -555,8 +554,8 @@ class Semantic_node
                     merged = true;
                     // Merge items: detectedObject and object (or ignore detectedObject?)
                     //ROS_INFO_STREAM("MERGING");
-                    break; // to avoid mergeObjects func
-                    mergeObjects(detectedObject, object);
+
+                    //mergeObjects(detectedObject, object); //Ignored for now, uncomment once implemented!
                     break; //
                 }
             }
@@ -695,7 +694,7 @@ class Semantic_node
 public:
     Semantic_node(ros::NodeHandle *nh)
     {
-        map = new Semantic_data_holder(nh);
+        map = new Semantic_data_holder(nh, "map.xml");
         detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
 
         markerPub = nh->advertise<visualization_msgs::MarkerArray>("map_markers", 10);
