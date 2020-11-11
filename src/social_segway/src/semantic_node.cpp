@@ -254,8 +254,8 @@ public:
 
         file_name = map_path;
         room_map_name = room_path.c_str();
-        ROS_INFO_STREAM("file_name: " << file_name);
-        ROS_INFO_STREAM("room_map_name: " << room_map_name);
+        //ROS_INFO_STREAM("file_name: " << file_name);
+        //ROS_INFO_STREAM("room_map_name: " << room_map_name);
 
         //ROS_INFO_STREAM("Creating map in: ");
         //ROS_INFO_STREAM(file_name);
@@ -506,17 +506,20 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
 
 class Semantic_node
 {
-
+    bool compare;
     float allowedDeviation = 5; // idk just some value for now
     float allowedDeviation2;
     int idCounter;
     double distance;
     float x1, y1, z1, x2, y2, z2;
 
+    ros::Subscriber changedDetectionSub;
     ros::Subscriber detectionSub;
+    
     ros::Publisher markerPub;
     ros::Timer timer;
     Semantic_data_holder *map;
+    Semantic_data_holder *old_map;
     ros::ServiceServer service_save_map;
     ros::ServiceServer service_reset_map;
 
@@ -551,6 +554,7 @@ class Semantic_node
 
                 if (distance < allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
                 {
+                    ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
                     // Merge items: detectedObject and object (or ignore detectedObject?)
                     //ROS_INFO_STREAM("MERGING");
@@ -610,7 +614,7 @@ class Semantic_node
                     {
                         //ROS_INFO_STREAM("placeobjetonfurin");
                         if (map->placeObjectOnFurniture(LooseObject, Furniture))
-                            ROS_INFO_STREAM("placement success");
+                            ROS_INFO_STREAM("Placed on top success");
                         else
                             ROS_ERROR_STREAM("failed to place item on furniture");
                     }
@@ -691,11 +695,85 @@ class Semantic_node
         return true;
     }
 
+    void changeDetectionCallback(const social_segway::ObjectList &data)
+    {        
+        for (auto detectedObject : data.objects)
+        {
+            x1 = detectedObject.transform.translation.x;
+            y1 = detectedObject.transform.translation.y;
+            z1 = detectedObject.transform.translation.z;
+
+            bool merged = false;
+
+            auto allChangedObjects = map->getAllObjects();
+            for (auto changedObject : allChangedObjects) // check if merge
+            {
+                if (allChangedObjects.size() == 0) // no objects in map to merge
+                    break;
+                
+                x2 = changedObject.transform.translation.x;
+                y2 = changedObject.transform.translation.y;
+                z2 = changedObject.transform.translation.z;
+
+                distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
+
+                if (distance < allowedDeviation && detectedObject.objectClass == changedObject.objectClass && detectedObject.type == changedObject.type)
+                { 
+                    ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
+                    merged = true;
+                    //mergeObjects(detectedObject, changedObject); //Ignored for now, uncomment once implemented!
+                    break;
+                }
+            }
+
+            if (!merged)
+            {
+                auto allObjects = old_map->getAllObjects();
+
+                if (allObjects.size() == 0) // no objects in map
+                {
+                    ROS_FATAL("NO OBJECTS IN MAP.XML");
+                    exit(1);
+                }
+
+                for (auto object : allObjects)
+                {
+                    x2 = object.transform.translation.x;
+                    y2 = object.transform.translation.y;
+                    z2 = object.transform.translation.z;
+
+                    distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
+
+                    if (distance > allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
+                    { 
+                        // add item to list
+                        ROS_INFO_STREAM("Adding changed item: " << detectedObject.objectClass);
+                        map->addObjectByPosition(object);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
 public:
     Semantic_node(ros::NodeHandle *nh)
     {
-        map = new Semantic_data_holder(nh, "map.xml", true);
-        detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
+        ros::param::get("compare", compare);
+
+        if (compare)
+        {
+            map = new Semantic_data_holder(nh, "map_changes.xml", true);
+            old_map = new Semantic_data_holder(nh, "map.xml", false);
+            changedDetectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::changeDetectionCallback, this);
+            ROS_INFO_STREAM("param mode: compare");
+        }
+        else
+        {
+            map = new Semantic_data_holder(nh, "map.xml", true);
+            detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
+            ROS_INFO_STREAM("param mode: original");
+        }
 
         markerPub = nh->advertise<visualization_msgs::MarkerArray>("map_markers", 10);
 
