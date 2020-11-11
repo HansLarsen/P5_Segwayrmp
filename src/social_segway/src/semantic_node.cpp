@@ -43,8 +43,6 @@ class Semantic_data_holder
     XMLNode *root;
     XMLDocument *roomDoc;
     std::vector<RoomStruct> roomVector;
-    ros::ServiceServer service_save_map;
-    ros::ServiceServer service_reset_map;
 
     XMLElement *TransformToXML(geometry_msgs::Transform transform)
     {
@@ -205,7 +203,7 @@ class Semantic_data_holder
         return "Unknown";
     }
 
-    void saveMap(bool); //placeholder function
+public:
     void resetMap()
     {
         doc->Clear();
@@ -248,23 +246,7 @@ class Semantic_data_holder
             std::cout << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y << "\n";
         }
     }
-
-    bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
-    {
-        saveMap();
-        response.success = true;
-        response.message = "Saved map";
-        return true;
-    }
-    bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
-    {
-        resetMap();
-        response.success = true;
-        response.message = "Reset map";
-        return true;
-    }
-
-public:
+    
     Semantic_data_holder(ros::NodeHandle *nh)
     {
         std::string pkg_path = ros::package::getPath("social_segway");
@@ -276,8 +258,6 @@ public:
         ROS_INFO_STREAM("file_name: " << file_name);
         ROS_INFO_STREAM("room_map_name: " << room_map_name);
 
-        service_save_map = nh->advertiseService("save_map", &Semantic_data_holder::saveMap_callback, this);
-        service_reset_map = nh->advertiseService("reset_map", &Semantic_data_holder::resetMap_callback, this);
         //ROS_INFO_STREAM("Creating map in: ");
         //ROS_INFO_STREAM(file_name);
         doc = new XMLDocument();
@@ -538,6 +518,8 @@ class Semantic_node
     ros::Publisher markerPub;
     ros::Timer timer;
     Semantic_data_holder *map;
+    ros::ServiceServer service_save_map;
+    ros::ServiceServer service_reset_map;
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
@@ -695,6 +677,21 @@ class Semantic_node
         //Merge somehow
     }
 
+    bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+    {
+        map->saveMap();
+        response.success = true;
+        response.message = "Saved map";
+        return true;
+    }
+    bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+    {
+        map->resetMap();
+        response.success = true;
+        response.message = "Reset map";
+        return true;
+    }
+
 public:
     Semantic_node(ros::NodeHandle *nh)
     {
@@ -702,6 +699,10 @@ public:
         detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
 
         markerPub = nh->advertise<visualization_msgs::MarkerArray>("map_markers", 10);
+
+        service_save_map = nh->advertiseService("save_map", &Semantic_node::saveMap_callback, this);
+        service_reset_map = nh->advertiseService("reset_map", &Semantic_node::resetMap_callback, this);
+
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
         idCounter = 1;
     }
