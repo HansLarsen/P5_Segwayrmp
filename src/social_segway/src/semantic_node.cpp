@@ -246,7 +246,7 @@ public:
 
     }
     
-    Semantic_data_holder(ros::NodeHandle *nh, std::string map_file_name)
+    Semantic_data_holder(ros::NodeHandle *nh, std::string map_file_name, bool ERASE_OLD_MAP)
     {
         std::string pkg_path = ros::package::getPath("social_segway");
         std::string map_path = pkg_path + "/map/" + map_file_name;
@@ -263,7 +263,7 @@ public:
         roomDoc = new XMLDocument();
 
         XMLError error = doc->LoadFile(file_name.c_str());
-        if (error == XML_SUCCESS)
+        if (error == XML_SUCCESS && ERASE_OLD_MAP)
         {
             //delete old map
             doc->Clear();
@@ -440,7 +440,7 @@ public:
 void testSemanticDataHolderClass(ros::NodeHandle *nh)
 {
     Semantic_data_holder *map;
-    map = new Semantic_data_holder(nh, "test_map.xml");
+    map = new Semantic_data_holder(nh, "test_map.xml", true);
     map->addRoom("Dining room");
     map->addRoom("Bedroom");
     map->addRoom("Living room");
@@ -694,7 +694,7 @@ class Semantic_node
 public:
     Semantic_node(ros::NodeHandle *nh)
     {
-        map = new Semantic_data_holder(nh, "map.xml");
+        map = new Semantic_data_holder(nh, "map.xml", true);
         detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
 
         markerPub = nh->advertise<visualization_msgs::MarkerArray>("map_markers", 10);
