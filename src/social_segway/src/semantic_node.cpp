@@ -202,23 +202,8 @@ class Semantic_data_holder
         }
         return "Unknown";
     }
-
-public:
-    void resetMap()
+    void readyRoomVector()
     {
-        doc->Clear();
-        root = doc->NewElement("map");
-        doc->InsertFirstChild(root);
-        roomVector.clear();
-        addRoom("Unknown");
-
-        //Read room document:
-        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name);
-        if (error != XML_SUCCESS)
-        {
-            ROS_ERROR_STREAM("FAILED TO OPEN " << room_map_name <<  " KILLING SEMANTIC NODE");
-            exit(-1);
-        }
         auto room = roomDoc->FirstChildElement();
         while (room != NULL)
         {
@@ -243,9 +228,27 @@ public:
 
         //for (auto a : roomVector)
         //    ROS_INFO_STREAM("roomVec: " << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y );
-
     }
-    
+
+public:
+    void resetMap()
+    {
+        doc->Clear();
+        root = doc->NewElement("map");
+        doc->InsertFirstChild(root);
+
+        roomVector.clear();
+        addRoom("Unknown");
+
+        //Read room document:
+        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name);
+        if (error != XML_SUCCESS)
+        {
+            ROS_ERROR_STREAM("FAILED TO OPEN " << room_map_name << " KILLING SEMANTIC NODE");
+            exit(-1);
+        }
+    }
+
     Semantic_data_holder(ros::NodeHandle *nh, std::string map_file_name, bool ERASE_OLD_MAP)
     {
         std::string pkg_path = ros::package::getPath("social_segway");
@@ -267,8 +270,10 @@ public:
         {
             //delete old map
             doc->Clear();
+            resetMap();
         }
-        resetMap();
+        else
+            readyRoomVector();
     }
 
     void addRoom(const char *room)
