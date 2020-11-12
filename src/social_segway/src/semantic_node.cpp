@@ -516,7 +516,7 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
 class Semantic_node
 {
     bool compare;
-    float allowedDeviation = 5; // idk just some value for now
+    float allowedDeviation = 0.5; // idk just some value for now
     float allowedDeviation2;
     int idCounter;
     double distance;
@@ -528,7 +528,7 @@ class Semantic_node
     ros::Publisher markerPub;
     ros::Timer timer;
     Semantic_data_holder *map;
-    Semantic_data_holder *old_map;
+    Semantic_data_holder *changes_map;
     ros::ServiceServer service_save_map;
     ros::ServiceServer service_reset_map;
 
@@ -691,14 +691,28 @@ class Semantic_node
 
     bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
     {
-        map->saveMap();
+        if (compare)
+        {
+            changes_map->saveMap();
+        }
+        else
+        {
+            map->saveMap();
+        } 
         response.success = true;
         response.message = "Saved map";
         return true;
     }
     bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
     {
-        map->resetMap();
+        if (compare)
+        {
+            changes_map->resetMap();
+        }
+        else
+        {
+            map->resetMap();
+        }                
         response.success = true;
         response.message = "Reset map";
         ROS_INFO_STREAM("Reset semantic map");
@@ -715,7 +729,7 @@ class Semantic_node
 
             bool merged = false;
 
-            auto allChangedObjects = map->getAllObjects();
+            auto allChangedObjects = changes_map->getAllObjects();
             for (auto changedObject : allChangedObjects) // check if merge
             {
                 if (allChangedObjects.size() == 0) // no objects in map to merge
@@ -731,14 +745,14 @@ class Semantic_node
                 {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
-                    //mergeObjects(detectedObject, changedObject); //Ignored for now, uncomment once implemented!
+                    //mergeObjects(detectedObject, changedObject); //Ignored for now, uncomment if ever implemented!
                     break;
                 }
             }
 
             if (!merged)
             {
-                auto allObjects = old_map->getAllObjects();
+                auto allObjects = map->getAllObjects();
 
                 if (allObjects.size() == 0) // no objects in map
                 {
@@ -758,7 +772,8 @@ class Semantic_node
                     {
                         // add item to list
                         ROS_INFO_STREAM("Adding changed item: " << detectedObject.objectClass);
-                        map->addObjectByPosition(object);
+                        detectedObject.id = object.id;
+                        changes_map->addObjectByPosition(detectedObject);
                         break;
                     }
                 }
@@ -769,18 +784,19 @@ class Semantic_node
 public:
     Semantic_node(ros::NodeHandle *nh)
     {
+        ros::param::set("compare", false);
         ros::param::get("compare", compare);
 
         if (compare)
         {
-            map = new Semantic_data_holder(nh, "map_changes.xml", true);
-            old_map = new Semantic_data_holder(nh, "map.xml", false);
+            changes_map = new Semantic_data_holder(nh, "map_changes.xml", true);
+            map = new Semantic_data_holder(nh, "map.xml", false);
             changedDetectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::changeDetectionCallback, this);
             ROS_INFO_STREAM("Semantic Node mode: Comparator");
         }
         else
         {
-            map = new Semantic_data_holder(nh, "map.xml", false);
+            map = new Semantic_data_holder(nh, "map.xml", true);
             detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
             ROS_INFO_STREAM("Semantic Node mode: Mapping");
         }
