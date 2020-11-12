@@ -204,13 +204,20 @@ class Semantic_data_holder
     }
     void readyRoomVector()
     {
+        //Read room document:
+        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name.c_str());
+        if (error != XML_SUCCESS)
+        {
+            ROS_ERROR_STREAM("FAILED TO OPEN ROOMS file: " << room_map_name << " KILLING SEMANTIC NODE");
+            exit(-1);
+        }
+
+        roomVector.clear();
         auto room = roomDoc->FirstChildElement();
         while (room != NULL)
         {
             RoomStruct roomStr;
             roomStr.name = room->Attribute("name");
-            //ROS_INFO_STREAM("roomstr.name: " << roomStr.name);
-
             auto posElement = room->FirstChildElement();
             for (int i = 0; i < 2; i++)
             {
@@ -220,14 +227,13 @@ class Semantic_data_holder
                 roomStr.points[i] = point;
                 posElement = posElement->NextSiblingElement();
             }
-
             addRoom(room->Attribute("name"));
             room = room->NextSiblingElement();
             roomVector.push_back(roomStr);
         }
 
         //for (auto a : roomVector)
-        //    ROS_INFO_STREAM("roomVec: " << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y );
+          //  ROS_INFO_STREAM("roomVec: " << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y);
     }
 
 public:
@@ -236,17 +242,7 @@ public:
         doc->Clear();
         root = doc->NewElement("map");
         doc->InsertFirstChild(root);
-
-        roomVector.clear();
         addRoom("Unknown");
-
-        //Read room document:
-        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name.c_str());
-        if (error != XML_SUCCESS)
-        {
-            ROS_ERROR_STREAM("FAILED TO OPEN ROOMS file: " << room_map_name << " KILLING SEMANTIC NODE");
-            exit(-1);
-        }
     }
 
     Semantic_data_holder(ros::NodeHandle *nh, std::string map_file_name, bool ERASE_OLD_MAP)
@@ -256,7 +252,7 @@ public:
         std::string room_path = pkg_path + "/map/rooms.xml";
 
         file_name = map_path;
-        room_map_name = room_path.c_str();
+        room_map_name = room_path;
         //ROS_INFO_STREAM("file_name: " << file_name);
         //ROS_INFO_STREAM("room_map_name: " << room_map_name);
 
@@ -264,7 +260,6 @@ public:
         //ROS_INFO_STREAM(file_name);
         doc = new XMLDocument();
         roomDoc = new XMLDocument();
-
         if (ERASE_OLD_MAP)
         {
             //delete old map
@@ -279,6 +274,8 @@ public:
                 ROS_ERROR_STREAM("Failed to load map: " << file_name << ", KILLING SEMANTIC NODE");
                 exit(-1);
             }
+
+            root = doc->FirstChildElement();
             readyRoomVector();
         }
     }
@@ -779,13 +776,13 @@ public:
             map = new Semantic_data_holder(nh, "map_changes.xml", true);
             old_map = new Semantic_data_holder(nh, "map.xml", false);
             changedDetectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::changeDetectionCallback, this);
-            ROS_INFO_STREAM("param mode: compare");
+            ROS_INFO_STREAM("Semantic Node mode: Comparator");
         }
         else
         {
-            map = new Semantic_data_holder(nh, "map.xml", true);
+            map = new Semantic_data_holder(nh, "map.xml", false);
             detectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::detectionCallback, this);
-            ROS_INFO_STREAM("param mode: original");
+            ROS_INFO_STREAM("Semantic Node mode: Mapping");
         }
 
         markerPub = nh->advertise<visualization_msgs::MarkerArray>("map_markers", 10);
