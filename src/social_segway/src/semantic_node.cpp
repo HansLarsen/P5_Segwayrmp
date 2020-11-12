@@ -585,8 +585,8 @@ class Semantic_node
                 {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
-                    //ROS_INFO_STREAM("MERGING");
-                    mergeObjects(detectedObject, object);
+                    if (!mergeObjects(detectedObject, object))
+                        ROS_INFO_STREAM("Failed to merged item: " << detectedObject.objectClass);
                     break; //
                 }
             }
@@ -720,16 +720,31 @@ class Semantic_node
         oldObject.transform.translation.y = ((y2*tf)+y1)/tf;
         oldObject.transform.translation.z = ((z2*tf)+z1)/tf;
 
-        if (compare)
-        {
-            //changed_map->removeObjectByID(oldObject.id);
-            //changed_map->addObjectByPosition(oldObject);        
+        if (compare){
+           if (oldObject.type == "Furniture")
+                changes_map->removeFurnitureById(oldObject.id);
+            else if(oldObject.type == "Item")
+                changes_map->removeItemById(oldObject.id);
+            else
+            {
+                ROS_WARN_STREAM("Asked to remove invalid object type: " << oldObject.type);
+                return false;
+            }
+            changes_map->addObjectByPosition(oldObject);
         }
-        else
-        {
-            //map->removeObjectByID(oldObject.id);
-            //map->addObjectByPosition(oldObject);        
+        else{
+            if (oldObject.type == "Furniture")
+                map->removeFurnitureById(oldObject.id);
+            else if(oldObject.type == "Item")
+                map->removeItemById(oldObject.id);
+            else
+            {
+                ROS_WARN_STREAM("Asked to remove invalid object type: " << oldObject.type);
+                return false;
+            }
+            map->addObjectByPosition(oldObject);
         }
+        return true;
     }
 
     bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
@@ -788,7 +803,8 @@ class Semantic_node
                 {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
-                    mergeObjects(detectedObject, changedObject);
+                    if (!mergeObjects(detectedObject, changedObject))
+                        ROS_INFO_STREAM("Failed to merged item: " << detectedObject.objectClass);
                     break;
                 }
             }
@@ -864,8 +880,8 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "semantic_node");
     ros::NodeHandle n;
-    testSemanticDataHolderClass(&n);
-    exit(10);
+    //testSemanticDataHolderClass(&n);
+    //exit(10);
     Semantic_node *node;
     node = new Semantic_node(&n);
     ros::spin();
