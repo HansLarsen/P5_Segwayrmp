@@ -533,6 +533,7 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
 
 class Semantic_node
 {
+    std::vector<int> timesFound;
     bool compare;
     float allowedDeviation = 0.5; // idk just some value for now
     float allowedDeviation2;
@@ -563,6 +564,7 @@ class Semantic_node
                 // add item to list
                 detectedObject.id = idCounter;
                 idCounter++;
+                timesFound.push_back(1);
                 map->addObjectByPosition(detectedObject);
                 continue;
             }
@@ -583,10 +585,8 @@ class Semantic_node
                 {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
-                    // Merge items: detectedObject and object (or ignore detectedObject?)
                     //ROS_INFO_STREAM("MERGING");
-
-                    //mergeObjects(detectedObject, object); //Ignored for now, uncomment once implemented!
+                    mergeObjects(detectedObject, object);
                     break; //
                 }
             }
@@ -596,6 +596,7 @@ class Semantic_node
                 ROS_INFO_STREAM("Adding new item: " << detectedObject.objectClass);
                 detectedObject.id = idCounter;
                 idCounter++;
+                timesFound.push_back(1);
                 map->addObjectByPosition(detectedObject);
             }
         }
@@ -702,9 +703,33 @@ class Semantic_node
         publishMarkers();
     }
 
-    bool mergeObjects(social_segway::Object detectedObject, social_segway::Object object)
-    {
-        //Merge somehow
+    bool mergeObjects(social_segway::Object newObject, social_segway::Object oldObject)
+    { // the more times the object have been found the less importance will the new point have when merging
+      // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
+        timesFound.at(oldObject.id)++;
+        int tf;
+        tf = timesFound.at(oldObject.id);
+        x1 = newObject.transform.translation.x;
+        y1 = newObject.transform.translation.y;
+        z1 = newObject.transform.translation.z;
+        x2 = oldObject.transform.translation.x;
+        y2 = oldObject.transform.translation.y;
+        z2 = oldObject.transform.translation.z;
+
+        oldObject.transform.translation.x = ((x2*tf)+x1)/tf;
+        oldObject.transform.translation.y = ((y2*tf)+y1)/tf;
+        oldObject.transform.translation.z = ((z2*tf)+z1)/tf;
+
+        if (compare)
+        {
+            //changed_map->removeObjectByID(oldObject.id);
+            //changed_map->addObjectByPosition(oldObject);        
+        }
+        else
+        {
+            //map->removeObjectByID(oldObject.id);
+            //map->addObjectByPosition(oldObject);        
+        }
     }
 
     bool saveMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
@@ -763,7 +788,7 @@ class Semantic_node
                 {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
-                    //mergeObjects(detectedObject, changedObject); //Ignored for now, uncomment if ever implemented!
+                    mergeObjects(detectedObject, changedObject);
                     break;
                 }
             }
@@ -811,6 +836,12 @@ public:
             map = new Semantic_data_holder(nh, "map.xml", false);
             changedDetectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::changeDetectionCallback, this);
             ROS_INFO_STREAM("Semantic Node mode: Comparator");
+            
+            auto allObjects = map->getAllObjects();
+            for (auto object : allObjects)
+            {
+                timesFound.push_back(1);
+            }
         }
         else
         {
