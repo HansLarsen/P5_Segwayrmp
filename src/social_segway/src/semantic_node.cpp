@@ -37,7 +37,7 @@ class Semantic_data_holder
     };
 
     std::string file_name;
-    const char *room_map_name;
+    std::string room_map_name;
 
     XMLDocument *doc;
     XMLNode *root;
@@ -241,10 +241,10 @@ public:
         addRoom("Unknown");
 
         //Read room document:
-        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name);
+        xml_lib::XMLError error = roomDoc->LoadFile(room_map_name.c_str());
         if (error != XML_SUCCESS)
         {
-            ROS_ERROR_STREAM("FAILED TO OPEN " << room_map_name << " KILLING SEMANTIC NODE");
+            ROS_ERROR_STREAM("FAILED TO OPEN ROOMS file: " << room_map_name << " KILLING SEMANTIC NODE");
             exit(-1);
         }
     }
@@ -704,6 +704,7 @@ class Semantic_node
         map->resetMap();
         response.success = true;
         response.message = "Reset map";
+        ROS_INFO_STREAM("Reset semantic map");
         return true;
     }
 
