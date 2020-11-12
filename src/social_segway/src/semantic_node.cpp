@@ -265,19 +265,21 @@ public:
         doc = new XMLDocument();
         roomDoc = new XMLDocument();
 
-        XMLError error = doc->LoadFile(file_name.c_str());
-        if (error == XML_SUCCESS && ERASE_OLD_MAP)
+        if (ERASE_OLD_MAP)
         {
             //delete old map
-            doc->Clear();
             resetMap();
-        }
-        else if(error == XML_SUCCESS && !ERASE_OLD_MAP)
             readyRoomVector();
-        else
+        }
+        else if (!ERASE_OLD_MAP)
         {
-            ROS_ERROR_STREAM("Failed to load map: " << file_name << ", KILLING SEMANTIC NODE");
-            exit(-1);
+            XMLError error = doc->LoadFile(file_name.c_str());
+            if (error != XML_SUCCESS)
+            {
+                ROS_ERROR_STREAM("Failed to load map: " << file_name << ", KILLING SEMANTIC NODE");
+                exit(-1);
+            }
+            readyRoomVector();
         }
     }
 
@@ -525,7 +527,7 @@ class Semantic_node
 
     ros::Subscriber changedDetectionSub;
     ros::Subscriber detectionSub;
-    
+
     ros::Publisher markerPub;
     ros::Timer timer;
     Semantic_data_holder *map;
@@ -706,7 +708,7 @@ class Semantic_node
     }
 
     void changeDetectionCallback(const social_segway::ObjectList &data)
-    {        
+    {
         for (auto detectedObject : data.objects)
         {
             x1 = detectedObject.transform.translation.x;
@@ -720,7 +722,7 @@ class Semantic_node
             {
                 if (allChangedObjects.size() == 0) // no objects in map to merge
                     break;
-                
+
                 x2 = changedObject.transform.translation.x;
                 y2 = changedObject.transform.translation.y;
                 z2 = changedObject.transform.translation.z;
@@ -728,7 +730,7 @@ class Semantic_node
                 distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
 
                 if (distance < allowedDeviation && detectedObject.objectClass == changedObject.objectClass && detectedObject.type == changedObject.type)
-                { 
+                {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
                     //mergeObjects(detectedObject, changedObject); //Ignored for now, uncomment once implemented!
@@ -755,7 +757,7 @@ class Semantic_node
                     distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
 
                     if (distance > allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
-                    { 
+                    {
                         // add item to list
                         ROS_INFO_STREAM("Adding changed item: " << detectedObject.objectClass);
                         map->addObjectByPosition(object);
