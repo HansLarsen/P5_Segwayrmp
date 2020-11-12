@@ -237,6 +237,21 @@ class Semantic_data_holder
     }
 
 public:
+
+    bool removeItemById(int id)
+    {
+        auto ele = getItemElementById(id);
+        auto parent = ele->Parent();
+        parent->DeleteChild(ele);
+    }   
+
+    bool removeFurnitureById(int id)
+    {
+        auto ele = getFurnitureElementById(id);
+        auto parent = ele->Parent();
+        parent->DeleteChild(ele);
+    }
+
     void resetMap()
     {
         doc->Clear();
@@ -482,6 +497,9 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
     object.objectClass = "Laptop";
     map->addObjectToRoom("Dining room", object);
 
+    map->removeItemById(4);
+    map->removeFurnitureById(1);
+    return;
     auto objects = map->getObjectsInRoom("Dining room");
     std::cout << objects.size() << std::endl;
     for (auto object : objects)
@@ -815,6 +833,8 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "semantic_node");
     ros::NodeHandle n;
+    testSemanticDataHolderClass(&n);
+    exit(10);
     Semantic_node *node;
     node = new Semantic_node(&n);
     ros::spin();
