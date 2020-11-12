@@ -233,23 +233,31 @@ class Semantic_data_holder
         }
 
         //for (auto a : roomVector)
-          //  ROS_INFO_STREAM("roomVec: " << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y);
+        //  ROS_INFO_STREAM("roomVec: " << a.points[0].x << ", " << a.points[0].y << ", " << a.points[1].x << ", " << a.points[1].y);
+    }
+
+    bool removeElement(XMLElement *ele)
+    {
+        if (ele == NULL)
+            return false;
+        auto parent = ele->Parent();
+        if (parent == NULL)
+            return false;
+        parent->DeleteChild(ele);
+        return true;
     }
 
 public:
-
     bool removeItemById(int id)
     {
         auto ele = getItemElementById(id);
-        auto parent = ele->Parent();
-        parent->DeleteChild(ele);
-    }   
+        return removeElement(ele);
+    }
 
     bool removeFurnitureById(int id)
     {
         auto ele = getFurnitureElementById(id);
-        auto parent = ele->Parent();
-        parent->DeleteChild(ele);
+        return removeElement(ele);
     }
 
     void resetMap()
@@ -704,8 +712,8 @@ class Semantic_node
     }
 
     bool mergeObjects(social_segway::Object newObject, social_segway::Object oldObject)
-    { // the more times the object have been found the less importance will the new point have when merging
-      // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
+    {   // the more times the object have been found the less importance will the new point have when merging
+        // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
         timesFound.at(oldObject.id)++;
         int tf;
         tf = timesFound.at(oldObject.id);
@@ -716,19 +724,19 @@ class Semantic_node
         y2 = oldObject.transform.translation.y;
         z2 = oldObject.transform.translation.z;
 
-        oldObject.transform.translation.x = ((x2*tf)+x1)/tf;
-        oldObject.transform.translation.y = ((y2*tf)+y1)/tf;
-        oldObject.transform.translation.z = ((z2*tf)+z1)/tf;
+        oldObject.transform.translation.x = ((x2 * tf) + x1) / tf;
+        oldObject.transform.translation.y = ((y2 * tf) + y1) / tf;
+        oldObject.transform.translation.z = ((z2 * tf) + z1) / tf;
 
         if (compare)
         {
             //changed_map->removeObjectByID(oldObject.id);
-            //changed_map->addObjectByPosition(oldObject);        
+            //changed_map->addObjectByPosition(oldObject);
         }
         else
         {
             //map->removeObjectByID(oldObject.id);
-            //map->addObjectByPosition(oldObject);        
+            //map->addObjectByPosition(oldObject);
         }
     }
 
@@ -741,7 +749,7 @@ class Semantic_node
         else
         {
             map->saveMap();
-        } 
+        }
         response.success = true;
         response.message = "Saved map";
         return true;
@@ -755,7 +763,7 @@ class Semantic_node
         else
         {
             map->resetMap();
-        }                
+        }
         response.success = true;
         response.message = "Reset map";
         ROS_INFO_STREAM("Reset semantic map");
@@ -836,7 +844,7 @@ public:
             map = new Semantic_data_holder(nh, "map.xml", false);
             changedDetectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::changeDetectionCallback, this);
             ROS_INFO_STREAM("Semantic Node mode: Comparator");
-            
+
             auto allObjects = map->getAllObjects();
             for (auto object : allObjects)
             {
