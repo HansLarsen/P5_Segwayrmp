@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   xml_lib
   roslib
   visualization_msgs
+  actionlib
+  actionlib_msgs 
 )
 
 ## System dependencies are found with CMake's conventions
