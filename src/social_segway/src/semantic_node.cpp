@@ -272,8 +272,13 @@ public:
             doc->Clear();
             resetMap();
         }
-        else
+        else if(error == XML_SUCCESS && !ERASE_OLD_MAP)
             readyRoomVector();
+        else
+        {
+            ROS_ERROR_STREAM("Failed to load map: " << file_name << ", KILLING SEMANTIC NODE");
+            exit(-1);
+        }
     }
 
     void addRoom(const char *room)
