@@ -760,9 +760,10 @@ class Semantic_node
         y2 = oldObject.transform.translation.y;
         z2 = oldObject.transform.translation.z;
 
-        oldObject.transform.translation.x = ((x2 * tf) + x1) / tf;
-        oldObject.transform.translation.y = ((y2 * tf) + y1) / tf;
-        oldObject.transform.translation.z = ((z2 * tf) + z1) / tf;
+        oldObject.transform.translation.x = ((x2 * (tf-1)) + x1) / tf;
+        oldObject.transform.translation.y = ((y2 * (tf-1)) + y1) / tf;
+        oldObject.transform.translation.z = ((z2 * (tf-1)) + z1) / tf;
+        //ROS_INFO_STREAM("Object: " << oldObject.objectClass << ", timesFound: " << tf << ", new x coordinate: " << oldObject.transform.translation.x);
 
         if (compare)
         {
