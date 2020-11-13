@@ -3,6 +3,8 @@
 #include "xml_lib/xml_lib.h"
 #include "social_segway/Object.h"
 #include "social_segway/ObjectList.h"
+#include "social_segway/GetObjectsInRoom.h"
+#include "social_segway/GetRooms.h"
 #include "geometry_msgs/Transform.h"
 #include "std_srvs/Trigger.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -558,6 +560,8 @@ class Semantic_node
     Semantic_data_holder *changes_map;
     ros::ServiceServer service_save_map;
     ros::ServiceServer service_reset_map;
+    ros::ServiceServer getRoomsSrv;
+    ros::ServiceServer getObjectsInRoomSrv;
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
@@ -712,7 +716,7 @@ class Semantic_node
     }
 
     bool mergeObjects(social_segway::Object newObject, social_segway::Object oldObject)
-    {   // the more times the object have been found the less importance will the new point have when merging
+    { // the more times the object have been found the less importance will the new point have when merging
         // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
         timesFound.at(oldObject.id)++;
         int tf;
@@ -848,6 +852,12 @@ class Semantic_node
             }
         }
     }
+    bool getRooms_callback(social_segway::GetRooms::Request &request, social_segway::GetRooms::Response &response)
+    {
+    }
+    bool getObjectsInRoom_callback(social_segway::GetObjectsInRoom::Request &request, social_segway::GetObjectsInRoom::Response &response)
+    {
+    }
 
 public:
     Semantic_node(ros::NodeHandle *nh)
@@ -879,6 +889,8 @@ public:
 
         service_save_map = nh->advertiseService("save_map", &Semantic_node::saveMap_callback, this);
         service_reset_map = nh->advertiseService("reset_map", &Semantic_node::resetMap_callback, this);
+        getRoomsSrv = nh->advertiseService("get_rooms", &Semantic_node::getRooms_callback, this);
+        getObjectsInRoomSrv = nh->advertiseService("get_objects_in_room", &Semantic_node::getObjectsInRoom_callback, this);
 
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
         idCounter = 1;

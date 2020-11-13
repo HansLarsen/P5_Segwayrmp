@@ -1,0 +1,4 @@
+# service to get name of all rooms - semantic_node must ignore the room: "Unknown"
+ ---
+
+ string[] rooms
