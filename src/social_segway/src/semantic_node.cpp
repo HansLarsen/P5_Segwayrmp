@@ -355,26 +355,26 @@ public:
         return true;
     }
 
-    std::vector<const char *> getRooms()
+    std::vector<std::string> getRooms()
     {
         XMLElement *room = root->FirstChildElement();
-        std::vector<const char *> rooms;
+        std::vector<std::string> rooms;
         while (room != NULL)
         {
-            rooms.push_back(room->Attribute("room"));
+            rooms.push_back(std::string(room->Attribute("name")));
             room = room->NextSiblingElement();
         }
         return rooms;
     }
 
-    std::vector<const char *> getObjectsInRoom(const char *room)
+    std::vector<std::string> getObjectNamesInRoom(const char *room)
     {
         XMLElement *roomElement = getRoomElement(room);
         XMLElement *object = roomElement->FirstChildElement();
-        std::vector<const char *> objects;
+        std::vector<std::string> objects;
         while (object != NULL)
         {
-            objects.push_back(object->Name());
+            objects.push_back(std::string(object->Name()));
             object = object->NextSiblingElement();
         }
         return objects;
@@ -463,6 +463,38 @@ public:
         return objects;
     }
 
+    std::vector<social_segway::Object> getObjectsInRoom(const char *room)
+    {
+        std::vector<social_segway::Object> objects;
+        XMLElement *roomElement = getRoomElement(room);
+        if (roomElement == NULL)
+            return objects;
+
+        XMLElement *furniture = roomElement->FirstChildElement();
+
+        while (furniture != NULL)
+        {
+            if (!strcmp(furniture->Name(), "Furniture"))
+            {
+                XMLElement *items = furniture->FirstChildElement();
+                while (items != NULL)
+                {
+                    if (strcmp(items->Name(), "Item"))
+                        objects.push_back(XMLElementToObject(items));
+                    else
+                        objects.push_back(XMLElementToObject(items->FirstChildElement()));
+
+                    items = items->NextSiblingElement();
+                }
+            }
+            else //loose object
+                objects.push_back(XMLElementToObject(furniture->FirstChildElement()));
+
+            furniture = furniture->NextSiblingElement();
+        }
+        return objects;
+    }
+
     void saveMap()
     {
         XMLError error = doc->SaveFile(file_name.c_str());
@@ -510,7 +542,7 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
     map->removeItemById(4);
     map->removeFurnitureById(1);
     return;
-    auto objects = map->getObjectsInRoom("Dining room");
+    auto objects = map->getObjectNamesInRoom("Dining room");
     std::cout << objects.size() << std::endl;
     for (auto object : objects)
     {
@@ -732,10 +764,11 @@ class Semantic_node
         oldObject.transform.translation.y = ((y2 * tf) + y1) / tf;
         oldObject.transform.translation.z = ((z2 * tf) + z1) / tf;
 
-        if (compare){
-           if (oldObject.type == "Furniture")
+        if (compare)
+        {
+            if (oldObject.type == "Furniture")
                 changes_map->removeFurnitureById(oldObject.id);
-            else if(oldObject.type == "Item")
+            else if (oldObject.type == "Item")
                 changes_map->removeItemById(oldObject.id);
             else
             {
@@ -744,10 +777,11 @@ class Semantic_node
             }
             changes_map->addObjectByPosition(oldObject);
         }
-        else{
+        else
+        {
             if (oldObject.type == "Furniture")
                 map->removeFurnitureById(oldObject.id);
-            else if(oldObject.type == "Item")
+            else if (oldObject.type == "Item")
                 map->removeItemById(oldObject.id);
             else
             {
@@ -853,9 +887,27 @@ class Semantic_node
     }
     bool getRooms_callback(social_segway::GetRooms::Request &request, social_segway::GetRooms::Response &response)
     {
+        std::vector<std::string> rooms;
+        rooms = map->getRooms();
+        for (int i = 0; i < rooms.size(); i++)
+        {
+            if (rooms[i] == "Unknown")
+                rooms.erase(rooms.begin() + i);
+        }
+        response.rooms = rooms;
+        return true;
     }
+    
     bool getObjectsInRoom_callback(social_segway::GetObjectsInRoom::Request &request, social_segway::GetObjectsInRoom::Response &response)
     {
+        if (request.room.length() > 0)
+        {
+            auto objects = map->getObjectsInRoom(request.room.c_str());
+            response.objects = objects;
+            return true;
+        }
+        else
+            return false;
     }
 
 public:
