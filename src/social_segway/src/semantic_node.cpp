@@ -253,7 +253,7 @@ public:
         auto ele = getItemElementById(id);
         return removeElement(ele);
     }
-
+    
     bool removeFurnitureById(int id)
     {
         auto ele = getFurnitureElementById(id);
@@ -558,6 +558,8 @@ class Semantic_node
     Semantic_data_holder *changes_map;
     ros::ServiceServer service_save_map;
     ros::ServiceServer service_reset_map;
+    ros::ServiceServer getRoomsSrv;
+    ros::ServiceServer getObjectsInRoomSrv;
 
     void detectionCallback(const social_segway::ObjectList &data)
     {
@@ -862,6 +864,8 @@ public:
 
         service_save_map = nh->advertiseService("save_map", &Semantic_node::saveMap_callback, this);
         service_reset_map = nh->advertiseService("reset_map", &Semantic_node::resetMap_callback, this);
+        getRoomsSrv; = nh->advertiseService("get_rooms", &Semantic_node::getRooms_callback, this);
+        getObjectsInRoomSrv = nh->advertiseService("get_objects_in_room", &Semantic_node.:getObjectsInRoom_callback, this);
 
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
         idCounter = 1;
