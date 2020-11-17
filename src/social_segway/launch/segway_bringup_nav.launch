@@ -58,7 +58,7 @@
 	<!-- - Run gmapping -->
 	<node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
 		<rosparam command="load" file="$(find segway_navigation_apps)/config/RMP_220/gmapping.yaml" />
-		<remap from="scan" to="/scan_filtered" />
+		<remap from="scan" to="/segway/scan_filtered" />
 	</node>
 	<node pkg="joy" type="joy_node" name="joystick_driver">
 	</node>
