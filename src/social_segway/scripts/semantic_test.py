@@ -4,8 +4,8 @@
 
 import rospy
 
-from social_segway.msg import Object
-from social_segway.msg import ObjectList
+from cameralauncher.msg import Object
+from cameralauncher.msg import ObjectList
 from std_srvs.srv import *
 from time import sleep
 from copy import copy

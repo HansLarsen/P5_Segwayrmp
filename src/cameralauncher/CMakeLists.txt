@@ -53,8 +53,8 @@ add_message_files(
    FILES
 #   Message1.msg
 #   Message2.msg
-  objects.msg
-  objectstruct.msg
+  Object.msg
+  ObjectList.msg
  )
 
 ## Generate services in the 'srv' folder

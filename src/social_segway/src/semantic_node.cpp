@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <ros/package.h>
 #include "xml_lib/xml_lib.h"
-#include "social_segway/Object.h"
-#include "social_segway/ObjectList.h"
+#include "cameralauncher/Object.h"
+#include "cameralauncher/ObjectList.h"
 #include "social_segway/GetObjectsInRoom.h"
 #include "social_segway/GetRooms.h"
 #include "geometry_msgs/Transform.h"
@@ -96,9 +96,9 @@ class Semantic_data_holder
         return NULL;
     }
 
-    social_segway::Object XMLElementToObject(XMLElement *element)
+    cameralauncher::Object XMLElementToObject(XMLElement *element)
     {
-        social_segway::Object object;
+        cameralauncher::Object object;
         object.id = element->IntAttribute("id");
         object.objectClass = element->Name();
         object.type = element->Parent()->ToElement()->Name();
@@ -312,7 +312,7 @@ public:
         root->InsertEndChild(element);
     }
 
-    bool addObjectToRoom(const char *room, social_segway::Object object)
+    bool addObjectToRoom(const char *room, cameralauncher::Object object)
     {
         //find room by looping through all rooms:
         auto roomElement = getRoomElement(room);
@@ -332,14 +332,14 @@ public:
         return true;
     }
 
-    bool addObjectByPosition(social_segway::Object object)
+    bool addObjectByPosition(cameralauncher::Object object)
     {
         auto room = getRoomByPosition(object.transform.translation.x, object.transform.translation.y);
         //ROS_INFO_STREAM("addObjectByPos room = " << room);
         return addObjectToRoom(room.c_str(), object);
     }
 
-    bool placeObjectOnFurniture(social_segway::Object item, social_segway::Object furniture)
+    bool placeObjectOnFurniture(cameralauncher::Object item, cameralauncher::Object furniture)
     {
         return placeObjectOnFurnitureById(item.id, furniture.id);
     }
@@ -380,9 +380,9 @@ public:
         return objects;
     }
 
-    std::vector<social_segway::Object> getLooseObjects()
+    std::vector<cameralauncher::Object> getLooseObjects()
     {
-        std::vector<social_segway::Object> objects;
+        std::vector<cameralauncher::Object> objects;
         XMLElement *room = root->FirstChildElement();
 
         while (room != NULL)
@@ -401,9 +401,9 @@ public:
         return objects;
     }
 
-    std::vector<social_segway::Object> getAllFurniture()
+    std::vector<cameralauncher::Object> getAllFurniture()
     {
-        std::vector<social_segway::Object> furnitures;
+        std::vector<cameralauncher::Object> furnitures;
         XMLElement *room = root->FirstChildElement();
 
         while (room != NULL)
@@ -429,9 +429,9 @@ public:
         return furnitures;
     }
 
-    std::vector<social_segway::Object> getAllObjects()
+    std::vector<cameralauncher::Object> getAllObjects()
     {
-        std::vector<social_segway::Object> objects;
+        std::vector<cameralauncher::Object> objects;
         XMLElement *room = root->FirstChildElement();
 
         while (room != NULL)
@@ -463,9 +463,9 @@ public:
         return objects;
     }
 
-    std::vector<social_segway::Object> getObjectsInRoom(const char *room)
+    std::vector<cameralauncher::Object> getObjectsInRoom(const char *room)
     {
-        std::vector<social_segway::Object> objects;
+        std::vector<cameralauncher::Object> objects;
         XMLElement *roomElement = getRoomElement(room);
         if (roomElement == NULL)
             return objects;
@@ -512,7 +512,7 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
     map->addRoom("Living room");
 
     //ObjectStruct object;
-    social_segway::Object object;
+    cameralauncher::Object object;
     object.objectClass = "Chair";
     object.type = "Furniture";
     object.id = 1;
@@ -595,7 +595,7 @@ class Semantic_node
     ros::ServiceServer getRoomsSrv;
     ros::ServiceServer getObjectsInRoomSrv;
 
-    void detectionCallback(const social_segway::ObjectList &data)
+    void detectionCallback(const cameralauncher::ObjectList &data)
     {
         for (auto detectedObject : data.objects)
         {
@@ -747,7 +747,7 @@ class Semantic_node
         publishMarkers();
     }
 
-    bool mergeObjects(social_segway::Object newObject, social_segway::Object oldObject)
+    bool mergeObjects(cameralauncher::Object newObject, cameralauncher::Object oldObject)
     { // the more times the object have been found the less importance will the new point have when merging
         // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
         timesFound.at(oldObject.id)++;
@@ -824,7 +824,7 @@ class Semantic_node
         return true;
     }
 
-    void changeDetectionCallback(const social_segway::ObjectList &data)
+    void changeDetectionCallback(const cameralauncher::ObjectList &data)
     {
         for (auto detectedObject : data.objects)
         {

@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   actionlib
   actionlib_msgs 
+  cameralauncher
 )
 
 ## System dependencies are found with CMake's conventions
@@ -55,11 +56,11 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   Object.msg
-   ObjectList.msg
- )
+# add_message_files(
+#   FILES
+#   Object.msg
+#   ObjectList.msg
+# )
 
 ## Generate services in the 'srv' folder
  add_service_files(
@@ -80,6 +81,7 @@ find_package(catkin REQUIRED COMPONENTS
    DEPENDENCIES
    geometry_msgs
    std_msgs
+   cameralauncher
  )
 
 ################################################

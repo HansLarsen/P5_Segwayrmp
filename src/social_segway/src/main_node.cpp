@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <move_base_msgs/MoveBaseAction.h>
-#include <social_segway/Object.h>
-#include <social_segway/ObjectList.h>
+#include <cameralauncher/Object.h>
+#include <cameralauncher/ObjectList.h>
 #include <social_segway/GetObjectsInRoom.h>
 #include <social_segway/GetRooms.h>
 #include <iostream>
@@ -102,7 +102,7 @@ float angleBetweenVectors(tf2::Vector3 &a, tf2::Vector3 &b)
 
 struct RoomData
 {
-    std::vector<social_segway::Object> objects;
+    std::vector<cameralauncher::Object> objects;
     std::string name;
     bool visited;
 };

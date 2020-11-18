@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import String
 from darknet_ros_msgs.msg import BoundingBoxes
-from cameralauncher.msg import objects, objectstruct
+from cameralauncher.msg import ObjectList, Object
 from sensor_msgs.msg import Image, CameraInfo
 import numpy
 import cv2
@@ -36,7 +36,7 @@ def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
 
 
 def yolo_callback(msg, depth_img, camera_info):
-    itemsInImageArray = objects()
+    itemsInImageArray = ObjectList()
 
     #rospy.loginfo("I heard %s", len(msg.bounding_boxes))
     itemsInImageArray.header = msg.image_header
@@ -45,7 +45,7 @@ def yolo_callback(msg, depth_img, camera_info):
         objecttypeTMP = knownList.get(msg.bounding_boxes[i].id)
         if objecttypeTMP == None:
             continue
-        items = objectstruct()
+        items = Object()
         items.type = objecttypeTMP
         items.Class = msg.bounding_boxes[i].Class
         items.id = 0
@@ -53,7 +53,7 @@ def yolo_callback(msg, depth_img, camera_info):
         items.location_relative_to_map.translation.y = 0
         items.location_relative_to_map.translation.z = 0
         items.location_relative_to_map.rotation.w = 1
-        itemsInImageArray.objectsarray.append(items)
+        itemsInImageArray.objects.append(items)
 
     #print "____________"
     #print itemsInImageArray
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     #sub_camera_rgb = rospy.Subscriber('/camera/color/image_raw', sensor_msgs/Image, callback_rgb, queue_size=0)
     #sub_box = rospy.Subscriber('/darknet_ros/bounding_boxes', BoundingBoxes, callback)
 
-    pub_obj = rospy.Publisher('/Detected_Objects', objects, queue_size=1)
+    pub_obj = rospy.Publisher('/detected_objects', ObjectList, queue_size=1)
     pub_to_yolo = rospy.Publisher('/camera/rgb/image_raw', Image, queue_size=1)
 
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
             rospy.loginfo('Yolo did not find any objects')
             continue
         
-        itemsInImageArray = objects()
+        itemsInImageArray = ObjectList()
 
         #rospy.loginfo("I heard %s", len(msg.bounding_boxes))
         itemsInImageArray.header = msg.image_header
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             objecttypeTMP = knownList.get(msg.bounding_boxes[i].id)
             if objecttypeTMP == None:
                 continue
-            items = objectstruct()
+            items = Object()
             items.type = objecttypeTMP
             items.Class = msg.bounding_boxes[i].Class
             items.id = 0
@@ -148,7 +148,7 @@ if __name__ == '__main__':
             #print metric_point_to_cam
             items.location_relative_to_map.translation = metric_point_to_cam
             items.location_relative_to_map.rotation.w = 1
-            itemsInImageArray.objectsarray.append(items)
+            itemsInImageArray.objects.append(items)
 
             transform_message.header = msg.image_header
             transform_message.child_frame_id = msg.bounding_boxes[i].Class
