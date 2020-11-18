@@ -80,7 +80,7 @@ private:
 public:
 
     Markers(ros::NodeHandle *node){
-        marker_pub = node->advertise<visualization_msgs::Marker>("visualization_marker", 5 ,this);
+        marker_pub = node->advertise<visualization_msgs::Marker>("visualization_marker", 10 ,this);
         service = node->advertiseService("rvizcommand",&Markers::command, this);
         sub = node->subscribe("clicked_point", 1, &Markers::callback, this);
 
@@ -150,6 +150,8 @@ public:
         }
 
         else if(req.a == sletalt){
+            marker.action = visualization_msgs::Marker::DELETEALL;
+            marker_pub.publish(marker);
             rooms.clear();
             res.response = "Deleted all rooms";
         }
@@ -158,7 +160,7 @@ public:
         }
         else if(req.a == publish){
 
-            MapRoom.open ("map/MapRoom.xml",std::ios::out);
+            MapRoom.open ("MapRoom.xml",std::ios::out);
 
             for(std::vector<Room>::iterator it = rooms.begin(); it != rooms.end(); it++) { 
                 
@@ -240,8 +242,6 @@ public:
             marker.pose.position.z = 0.3;
             marker_pub.publish(marker);
 
-            room.getType("test");
-
             rooms.push_back(room);
 
             res.response = "Room saved";
@@ -269,7 +269,3 @@ int main(int argc, char **argv){
     ros::spin();
 
 }
-
-
-   
-    
