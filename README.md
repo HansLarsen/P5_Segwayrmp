@@ -5,7 +5,7 @@ This is a clone of the segway libaries and ros node by segwayrmp.
 
 To install ros:
 
-`sudo apt install ros-kinetic-desktop-full ros-kinetic-realsense2-* ros-kinetic-sick-tim ros-kinetic-nmea-msgs ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-map-server ros-kinetic-velodyne-driver libqt4*`
+`sudo apt install ros-kinetic-desktop-full ros-kinetic-realsense2-* ros-kinetic-sick-tim ros-kinetic-nmea-msgs ros-kinetic-gmapping ros-kinetic-navigation ros-kinetic-map-server ros-kinetic-velodyne-driver libqt4* ros-kinetic-cob-gazebo-objects`
 
 
 to install this repository and the submodules (serial and libsegway) do:

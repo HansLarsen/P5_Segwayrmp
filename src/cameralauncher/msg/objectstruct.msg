@@ -1,0 +1,4 @@
+string type
+string Class
+int32 id
+geometry_msgs/Transform location_relative_to_map
