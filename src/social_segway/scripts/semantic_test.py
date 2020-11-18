@@ -40,7 +40,8 @@ def main():
     msgObj = Object()
     msgObj.type = "Item"
     msgObj.objectClass = "Cup"
-    msgObj.transform.translation.x = 0
+    msgObj.transform.translation.x = 0.5
+    msgObj.transform.translation.y = -0.5
     msgObj.transform.translation.z = 1
     msg.objects.append(msgObj)
 
