@@ -77,7 +77,7 @@
     
 */
 
-void convertTransToPose(const geometry_msgs::Transform &trans, geometry_msgs::Pose &pose)
+void convert(const geometry_msgs::Transform &trans, geometry_msgs::Pose &pose)
 {
     pose.orientation = trans.rotation;
     pose.position.x = trans.translation.x;
@@ -225,7 +225,7 @@ int main(int argc, char **argv)
                 auto tempTransform = robotTransform.transform;
                 tempTransform.translation.z = 0;
                 tf2::Transform pose; // = robotTransform.transform.rotation; // make this work
-                convertTransToPose(tempTransform, pose);
+                convert(tempTransform, pose);
 
                 //ROS_INFO_STREAM(pose.getOrigin().x() << ", " << pose.getOrigin().y() << ", " << pose.getOrigin().z());
                 //ROS_INFO_STREAM(pose.getRotation().x() << ", " << pose.getRotation().y() << ", " << pose.getRotation().z() << ", " << pose.getRotation().w());
