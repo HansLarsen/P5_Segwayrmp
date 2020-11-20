@@ -71,7 +71,7 @@
     <!-- <param name="time_increment" type="double" value="0.000061722" /> -->
 
   </node>
-  <node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster" args="0 0 0.5 1.57 0 0 base_link laser_mount_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster" args="0 -0.065 0.52 1.57 0 0 base_link laser_mount_link 100" />
 
   <node pkg="laser_filters" type="scan_to_scan_filter_chain" output="screen" name="laser_filter">
       
