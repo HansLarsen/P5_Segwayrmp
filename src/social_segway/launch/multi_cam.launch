@@ -1,0 +1,50 @@
+<launch>
+  <arg name="serial_no_camera1"    			default=""/> 			<!-- Note: Replace with actual serial number -->
+  <arg name="serial_no_camera2"    			default=""/> 			<!-- Note: Replace with actual serial number -->
+  <arg name="serial_no_camera3"    			default=""/> 			<!-- Note: Replace with actual serial number -->
+  <arg name="camera1"              			default="camera1"/>		<!-- Note: Replace with camera name -->
+  <arg name="camera2"              			default="camera2"/>		<!-- Note: Replace with camera name -->
+  <arg name="camera3"              			default="camera3"/>		<!-- Note: Replace with camera name -->
+  <arg name="tf_prefix_camera1"         default="$(arg camera1)"/>
+  <arg name="tf_prefix_camera2"         default="$(arg camera2)"/>
+  <arg name="tf_prefix_camera3"         default="$(arg camera3)"/>
+  <arg name="initial_reset"             default="false"/>
+
+  <group ns="$(arg camera1)">
+    <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+      <arg name="serial_no"             value="$(arg serial_no_camera1)"/>
+      <arg name="tf_prefix"         		value="$(arg tf_prefix_camera1)"/>
+      <arg name="initial_reset"         value="$(arg initial_reset)"/>
+      <arg name="align_depth"           value="true"/>
+    </include>
+  </group>
+
+  <group ns="$(arg camera2)">
+    <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+      <arg name="serial_no"             value="$(arg serial_no_camera2)"/>
+      <arg name="tf_prefix"		          value="$(arg tf_prefix_camera2)"/>
+      <arg name="initial_reset"         value="$(arg initial_reset)"/>
+      <arg name="align_depth"           value="true"/>
+    </include>
+  </group>
+<!--
+  <group ns="$(arg camera3)" if="$(eval serial_no_camera3 != '')">
+    <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+      <arg name="serial_no"             value="$(arg serial_no_camera3)"/>
+      <arg name="tf_prefix"		          value="$(arg tf_prefix_camera3)"/>
+      <arg name="initial_reset"         value="$(arg initial_reset)"/>
+    </include>
+  </group>
+ 
+-->
+<!--
+<node pkg="tf" type="static_transform_publisher" name="map_to_base_link_broadcaster" args="0 0 0 0 0 0 map base_link 25" />
+
+<node pkg="tf" type="static_transform_publisher" name="base_to_camera1_broadcaster" args="0 -0.025 1.3  0.3316126 0.7853982 1.902409 base_link camera1_link 25" />
+<node pkg="tf" type="static_transform_publisher" name="base_to_camera2_broadcaster" args="0  0.025 1.3 -0.3316126 0.7853982 -1.902409 base_link camera2_link 25" />
+ -->
+ <node pkg="tf" type="static_transform_publisher" name="base_link_to_camera_mount"   args="0 0 1.3     0 0.7853982 0 base_link camera_mount 25" />
+ <node pkg="tf" type="static_transform_publisher" name="base_to_camera1_broadcaster" args="0 0.04 0.05   0.33 0 1.57  camera_mount camera1_link 25" />
+ <node pkg="tf" type="static_transform_publisher" name="base_to_camera2_broadcaster" args="0 -0.04 -0.05  -0.33 0 -1.57 camera_mount camera2_link 25" />
+ 
+</launch>
