@@ -13,8 +13,6 @@
 	<include file="$(find realsense2_camera)/launch/rs_camera.launch">
 	</include>
 	-->
-	<include file="$(find segway_viz)/launch/view_robot.launch">
-	</include>
 
   	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find social_segway)/rviz/robot.rviz" output="screen"/>	
 
