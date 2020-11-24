@@ -599,6 +599,11 @@ class Semantic_node
     {
         for (auto detectedObject : data.objects)
         {
+            if(detectedObject.type == "furniture")
+                detectedObject.type = "Furniture";
+            if(detectedObject.type == "item")
+                detectedObject.type = "Item";
+                
             //ROS_INFO_STREAM("for loop");
             auto allObjects = map->getAllObjects();
             //ROS_INFO_STREAM("allObjects.size(): " << allObjects.size());
@@ -945,7 +950,7 @@ public:
         getObjectsInRoomSrv = nh->advertiseService("get_objects_in_room", &Semantic_node::getObjectsInRoom_callback, this);
 
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
-        idCounter = 1;
+        idCounter = 0;
     }
 };
 
