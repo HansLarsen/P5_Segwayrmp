@@ -85,6 +85,8 @@ Visualization Manager:
           Value: false
         base_link:
           Value: true
+        book:
+          Value: true
         bsa_link:
           Value: false
         camera_bottom_screw_frame:
@@ -117,28 +119,28 @@ Visualization Manager:
           Value: false
         camera_mount:
           Value: true
-        camera_r_aligned_depth_to_color_frame:
-          Value: true
-        camera_r_color_frame:
-          Value: true
-        camera_r_color_optical_frame:
-          Value: true
-        camera_r_depth_frame:
-          Value: true
-        camera_r_depth_optical_frame:
-          Value: true
         camera_r_link:
           Value: true
         camera_right_ir_frame:
           Value: false
         camera_right_ir_optical_frame:
           Value: false
+        cell phone:
+          Value: true
+        chair:
+          Value: true
+        diningtable:
+          Value: true
         front_caster_plate_link:
           Value: false
         front_laser_link:
           Value: false
         inertial_collision_link:
           Value: false
+        keyboard:
+          Value: true
+        laptop:
+          Value: true
         laser:
           Value: false
         laser_mount_link:
@@ -151,6 +153,8 @@ Visualization Manager:
           Value: false
         mcu_1_battery_link:
           Value: false
+        mouse:
+          Value: true
         odom:
           Value: false
         payload_link:
@@ -159,8 +163,12 @@ Visualization Manager:
           Value: false
         right_spacer_link:
           Value: false
+        scanmatcher_frame:
+          Value: true
         segway/base_link:
           Value: false
+        tvmonitor:
+          Value: true
         ui_box_link:
           Value: false
       Marker Scale: 1
@@ -215,26 +223,36 @@ Visualization Manager:
                 camera_l_link:
                   camera_l_aligned_depth_to_color_frame:
                     camera_l_color_optical_frame:
-                      {}
+                      book:
+                        {}
+                      cell phone:
+                        {}
+                      chair:
+                        {}
+                      diningtable:
+                        {}
+                      keyboard:
+                        {}
+                      laptop:
+                        {}
+                      mouse:
+                        {}
+                      tvmonitor:
+                        {}
                   camera_l_color_frame:
                     {}
                   camera_l_depth_frame:
                     camera_l_depth_optical_frame:
                       {}
                 camera_r_link:
-                  camera_r_aligned_depth_to_color_frame:
-                    camera_r_color_optical_frame:
-                      {}
-                  camera_r_color_frame:
-                    {}
-                  camera_r_depth_frame:
-                    camera_r_depth_optical_frame:
-                      {}
+                  {}
               laser_mount_link:
                 laser:
                   {}
               segway/base_link:
                 {}
+          scanmatcher_frame:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Group
@@ -285,7 +303,7 @@ Visualization Manager:
           Color: 255; 0; 0
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: true
+          Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Max Intensity: 999999
@@ -302,7 +320,7 @@ Visualization Manager:
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: true
+          Value: false
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -545,11 +563,19 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /map_markers
+      Name: MarkerArray
+      Namespaces:
+        semantic_map: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: odom
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -568,25 +594,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.41928053
+      Distance: 7.57520771
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.0333236605
-        Y: -0.155098796
-        Z: 0.808126509
+        X: 1.80238342
+        Y: 0.2272688
+        Z: 0.980782926
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.429796278
+      Pitch: 0.519796371
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.64359641
+      Yaw: 2.81860638
     Saved: ~
 Window Geometry:
   Displays:
