@@ -18,8 +18,8 @@ import tf2_geometry_msgs
 
 #import pyrealsense2
 
-knownList = {24: "item", 25: "item", 26: "item", 27: "item", 28: "item", 39: "item", 40: "item", 41: "item", 42: "item", 43: "item", 44: "item", 45: "item", 46: "item", 47: "item", 48: "item", 49: "item", 50: "item", 51: "item", 52: "item", 53: "item", 54: "item", 55: "item", 56: "furniture",
-             57: "furniture", 58: "item", 59: "furniture", 60: "furniture", 61: "furniture", 62: "furniture", 63: "item", 64: "item", 65: "item", 66: "item", 67: "item", 68: "item", 69: "furniture", 70: "item", 71: "furniture", 72: "furniture", 73: "item", 74: "item", 75: "item", 76: "item", 78: "item", 79: "item"}
+knownList = {24: "Item", 25: "Item", 26: "Item", 27: "Item", 28: "Item", 39: "Item", 40: "Item", 41: "Item", 42: "Item", 43: "Item", 44: "Item", 45: "Item", 46: "Item", 47: "Item", 48: "Item", 49: "Item", 50: "Item", 51: "Item", 52: "Item", 53: "Item", 54: "Item", 55: "Item", 56: "Furniture",
+             57: "Furniture", 58: "Item", 59: "Furniture", 60: "Furniture", 61: "Furniture", 62: "Furniture", 63: "Item", 64: "Item", 65: "Item", 66: "Item", 67: "Item", 68: "Item", 69: "Furniture", 70: "Item", 71: "Furniture", 72: "Furniture", 73: "Item", 74: "Item", 75: "Item", 76: "Item", 78: "Item", 79: "Item"}
 
 number_of_cameras = 2
 camera_rotation = [cv2.ROTATE_90_COUNTERCLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE]
@@ -35,7 +35,7 @@ def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
     return Vector3(x,y,z)
 
 
-def yolo_callback(msg, depth_img, camera_info):
+#def yolo_callback(msg, depth_img, camera_info):
     itemsInImageArray = ObjectList()
 
     #rospy.loginfo("I heard %s", len(msg.bounding_boxes))
