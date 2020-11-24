@@ -4,7 +4,7 @@
 		<remap from="segway_rmp_node/odom" to="/odom" />
 		<include file="$(find social_segway)/launch/segway_with_lidar.launch">
 		</include>
-		<node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster_2" args="0 0 0.3 0 0 0 laser_mount_link laser 100" />
+		<node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster_2" args="0 -0.065 0.12 0 0 0 laser_mount_link laser 100" />
 	</group>
 	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find social_segway_description)/urdf/rmp.urdf.xacro'" />
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
@@ -64,4 +64,6 @@
 	</node>
 	<node pkg="teleop_twist_joy" type="teleop_node" name="joystick_to_cmdvel">
 	</node>
+	<include file="$(find social_segway)/launch/multi_cam.launch">
+	</include>
 </launch>

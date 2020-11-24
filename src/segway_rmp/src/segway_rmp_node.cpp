@@ -296,8 +296,8 @@ public:
         this->last_time = current_time;
         
         // Create a Quaternion from the yaw displacement
-        geometry_msgs::Quaternion quat = 
-            tf::createQuaternionMsgFromYaw(yaw_displacement);
+        //geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromYaw(yaw_displacement);
+        geometry_msgs::Quaternion quat = tf::createQuaternionMsgFromRollPitchYaw(0, this->sss_msg.segway.pitch_angle, yaw_displacement);
         
         // Publish the Transform odom->base_link
         if (this->broadcast_tf) {
