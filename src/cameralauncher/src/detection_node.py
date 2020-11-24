@@ -3,7 +3,7 @@
 import rospy
 from std_msgs.msg import String
 from darknet_ros_msgs.msg import BoundingBoxes
-from cameralauncher.msg import ObjectList, Object
+from cameralauncher.msg import Object, ObjectList
 from sensor_msgs.msg import Image, CameraInfo
 import numpy
 import cv2
@@ -22,10 +22,10 @@ knownList = {24: "Item", 25: "Item", 26: "Item", 27: "Item", 28: "Item", 39: "It
              57: "Furniture", 58: "Item", 59: "Furniture", 60: "Furniture", 61: "Furniture", 62: "Furniture", 63: "Item", 64: "Item", 65: "Item", 66: "Item", 67: "Item", 68: "Item", 69: "Furniture", 70: "Item", 71: "Furniture", 72: "Furniture", 73: "Item", 74: "Item", 75: "Item", 76: "Item", 78: "Item", 79: "Item"}
 
 number_of_cameras = 2
-camera_rotation = [cv2.ROTATE_90_COUNTERCLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE]
-camera_topics = ['/camera/color/image_raw', '/camera/color/image_raw']
-camera_depth_topics = ['/camera/aligned_depth_to_color/image_raw', '/camera/aligned_depth_to_color/image_raw']
-camera_baselink_names = ['camera_color_optical_frame', 'camera_color_optical_frame']
+camera_rotation = [cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_90_CLOCKWISE]
+camera_topics = ['/camera_l/color/image_raw', '/camera_l/color/image_raw']
+camera_depth_topics = ['/camera_l/aligned_depth_to_color/image_raw', '/camera_l/aligned_depth_to_color/image_raw']
+camera_baselink_names = ['camera_l_color_optical_frame', 'camera_l_color_optical_frame']
 
 def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
     #print intrinsics
@@ -33,32 +33,6 @@ def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
     y = (((float(pixel_y)-intrinsics[5])/intrinsics[4])*float(depth))
     z = depth
     return Vector3(x,y,z)
-
-
-#def yolo_callback(msg, depth_img, camera_info):
-    itemsInImageArray = ObjectList()
-
-    #rospy.loginfo("I heard %s", len(msg.bounding_boxes))
-    itemsInImageArray.header = msg.image_header
-
-    for i in range(len(msg.bounding_boxes)):
-        objecttypeTMP = knownList.get(msg.bounding_boxes[i].id)
-        if objecttypeTMP == None:
-            continue
-        items = Object()
-        items.type = objecttypeTMP
-        items.Class = msg.bounding_boxes[i].Class
-        items.id = 0
-        items.location_relative_to_map.translation.x = 0
-        items.location_relative_to_map.translation.y = 0
-        items.location_relative_to_map.translation.z = 0
-        items.location_relative_to_map.rotation.w = 1
-        itemsInImageArray.objects.append(items)
-
-    #print "____________"
-    #print itemsInImageArray
-    pub_obj.publish(itemsInImageArray)
-
 
 if __name__ == '__main__':
 
@@ -73,7 +47,7 @@ if __name__ == '__main__':
 
     rospy.loginfo("Waiting for Camera Info")
     cam_info = rospy.wait_for_message(
-        '/camera/aligned_depth_to_color/camera_info', CameraInfo)
+        '/camera_l/aligned_depth_to_color/camera_info', CameraInfo)
     bridge = CvBridge()
 
     transform_broadcaster = tf2_ros.TransformBroadcaster()
@@ -85,23 +59,26 @@ if __name__ == '__main__':
     listener = tf2_ros.TransformListener(tfBuffer)
 
     while not rospy.is_shutdown():
-        #rospy.loginfo("Waiting for Camera RGB {}".format(current_camera_index))
+        rospy.loginfo("Waiting for Camera RGB {}".format(current_camera_index))
 
         rgb_image = rospy.wait_for_message(camera_topics[current_camera_index], Image)
         depth_image = rospy.wait_for_message(camera_depth_topics[current_camera_index], Image)
-        try:
-            trans = tfBuffer.lookup_transform(camera_baselink_names[current_camera_index], "camera_link", rospy.Time(0))
-        except:
-            print "could not look up transform"
-            continue
+        workingTime = rospy.Time(0)
+        #try:
+         #   trans = tfBuffer.lookup_transform(camera_baselink_names[current_camera_index], "camera_l_link", workingTime)
+        #except:
+         #   print "could not look up transform"
+          #  continue
         
         rospy.loginfo("Done waiting")
+	    rospy.loginfo(current_camera_index)
+	
 
         depthImageCv = CvBridge().imgmsg_to_cv2(depth_image, "passthrough")
         beforeYoloImg = CvBridge().imgmsg_to_cv2(rgb_image, "bgr8")
         afterRotationBeforeYolo = cv2.rotate(beforeYoloImg, camera_rotation[current_camera_index])
         beforeYolo2bridge = bridge.cv2_to_imgmsg(afterRotationBeforeYolo,"bgr8")
-
+        
         pub_to_yolo.publish(beforeYolo2bridge)
 
         msg = {}
@@ -121,57 +98,74 @@ if __name__ == '__main__':
                 continue
             items = Object()
             items.type = objecttypeTMP
-            items.Class = msg.bounding_boxes[i].Class
+            items.objectClass = msg.bounding_boxes[i].Class
             items.id = 0
 
             centerBox_x = 0.0
             centerBox_y = 0.0
             centerBox_z = 0.0
 
-            centerBox_x = (msg.bounding_boxes[i].xmax-msg.bounding_boxes[i].xmin)/2 +msg.bounding_boxes[i].xmin
-            centerBox_y = (msg.bounding_boxes[i].ymax-msg.bounding_boxes[i].ymin)/2 +msg.bounding_boxes[i].ymin
+            centerBox_x = ((msg.bounding_boxes[i].xmax-msg.bounding_boxes[i].xmin)/2) +msg.bounding_boxes[i].xmin
+            centerBox_y = ((msg.bounding_boxes[i].ymax-msg.bounding_boxes[i].ymin)/2) +msg.bounding_boxes[i].ymin
 
-            if (centerBox_y > beforeYoloImg.shape[0] or centerBox_x > beforeYoloImg.shape[1]):
-                continue
+            scalingFactor = (float(depthImageCv.shape[0])/float(beforeYoloImg.shape[0]),float(depthImageCv.shape[1])/float(beforeYoloImg.shape[1]))
+
+            centerBox_x = int(centerBox_x*scalingFactor[1])
+            centerBox_y = int(centerBox_y*scalingFactor[0])
+
+            newImage = cv2.cvtColor(depthImageCv, cv2.COLOR_GRAY2BGR)
 
             if camera_rotation[current_camera_index] == cv2.ROTATE_90_CLOCKWISE:
-                centerBox_x = beforeYoloImg.shape[0] - centerBox_x
+                centerBox_x = depthImageCv.shape[0] - centerBox_x
+
             elif camera_rotation[current_camera_index] == cv2.ROTATE_90_COUNTERCLOCKWISE:
-                centerBox_y = beforeYoloImg.shape[1] - centerBox_y
+                centerBox_y = depthImageCv.shape[1] - centerBox_y
             else:
                 rospy.logerr("Invalid rotation")
                 continue
 
-            centerBox_z = depthImageCv[centerBox_y, centerBox_x]
+            #Den her er bagvendt fordi det er row,column altsaa y,x.
+            centerBox_z = depthImageCv[centerBox_x,centerBox_y]
+
+            #newImage = cv2.rectangle(newImage, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
+            #newImage = cv2.resize(newImage, (newImage.shape[1] / 2, newImage.shape[0] / 2) )
+            rospy.logwarn("got_this")
+            #cv2.imshow("Cakesdatas", newImage)
+            #cv2.waitKey(1)
 
             metric_point_to_cam = depth_pixel_to_metric(centerBox_z/1000.0,centerBox_y,centerBox_x, cam_info.K)
-            #print metric_point_to_cam
-            items.location_relative_to_map.translation = metric_point_to_cam
-            items.location_relative_to_map.rotation.w = 1
-            itemsInImageArray.objects.append(items)
+            items.transform.translation = metric_point_to_cam
+            items.transform.rotation.w = 1
 
-            transform_message.header = msg.image_header
+            transform_message.header = rgb_image.header
             transform_message.child_frame_id = msg.bounding_boxes[i].Class
             transform_message.header.frame_id = camera_baselink_names[current_camera_index]
             transform_message.transform.translation = metric_point_to_cam
-            transform_message.transform.rotation = copy.copy(items.location_relative_to_map.rotation)
+            transform_message.transform.rotation = copy.copy(items.transform.rotation)
 
             transform_broadcaster.sendTransform(transform_message)
 
             transform_rel_map ={}
             try:
-                transform_rel_map = tfBuffer.lookup_transform("camera_link",msg.bounding_boxes[i].Class,rospy.Time(0))
+                transform_rel_map = tfBuffer.lookup_transform("map", msg.bounding_boxes[i].Class,rgb_image.header.stamp)
+
+                itemsInImageArray.header.frame_id = transform_rel_map.header.frame_id
+                items.transform = transform_rel_map.transform
+                itemsInImageArray.objects.append(items)
+
             except:
                 rospy.loginfo('error with looking up transform')
                 continue
-            
-            itemsInImageArray.header.frame_id = transform_rel_map.header.frame_id
-            items.location_relative_to_map = transform_rel_map.transform
 
         itemsInImageArray.header.stamp = rospy.Time.now()
+
+        if (len(itemsInImageArray.objects) == 0):
+            continue
+
         pub_obj.publish(itemsInImageArray)
 
         current_camera_index = current_camera_index + 1
+	
 
         if (current_camera_index > number_of_cameras - 1):
             current_camera_index = 0
