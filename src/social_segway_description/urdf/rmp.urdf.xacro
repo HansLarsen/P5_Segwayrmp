@@ -146,7 +146,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
         <gazebo reference="bsa_link"/>
 
         <sensor_d435 parent="base_link" name="camera" topics_ns="camera">
-            <origin xyz="0 0 1.4" rpy="0 ${M_PI/4.0} 0"/>
+            <origin xyz="0 0 1.4" rpy="${M_PI/2.0} ${M_PI/4.0} 0"/>
         </sensor_d435>
 <!--
         <sensor_d435 parent="base_link" name="camera2" topics_ns="camere2">
