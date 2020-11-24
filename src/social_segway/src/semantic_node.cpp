@@ -704,6 +704,7 @@ class Semantic_node
     {
         auto objects = map->getAllObjects();
         std::vector<visualization_msgs::Marker> markerArray;
+        int j = objects.size();
         for (int i = 0; i < objects.size(); i++)
         {
             visualization_msgs::Marker marker;
@@ -739,6 +740,19 @@ class Semantic_node
 
             marker.lifetime = ros::Duration(1.1);
             markerArray.push_back(marker);
+
+            marker.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+            marker.id = j;
+            j++;
+            marker.scale.z = 0.2;
+            marker.pose.position.z += 0.25;
+            marker.text = objects[i].objectClass;
+            marker.color.r = 1.0;
+            marker.color.b = 1.0;
+            marker.color.g = 1.0;
+            markerArray.push_back(marker);
+
+
         }
 
         visualization_msgs::MarkerArray msg;
