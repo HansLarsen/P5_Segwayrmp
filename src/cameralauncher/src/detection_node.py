@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
         rgb_image = rospy.wait_for_message(camera_topics[current_camera_index], Image)
         depth_image = rospy.wait_for_message(camera_depth_topics[current_camera_index], Image)
-        workingTime = rospy.Time(0)
+        #workingTime = rospy.Time(0)
         #try:
          #   trans = tfBuffer.lookup_transform(camera_baselink_names[current_camera_index], "camera_l_link", workingTime)
         #except:
@@ -127,9 +127,12 @@ if __name__ == '__main__':
             #Den her er bagvendt fordi det er row,column altsaa y,x.
             centerBox_z = depthImageCv[centerBox_x,centerBox_y]
 
+            if centerBox_z < 100.0:
+                continue
+
             #newImage = cv2.rectangle(newImage, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
             #newImage = cv2.resize(newImage, (newImage.shape[1] / 2, newImage.shape[0] / 2) )
-            rospy.logwarn("got_this")
+            #rospy.logwarn("got_this")
             #cv2.imshow("Cakesdatas", newImage)
             #cv2.waitKey(1)
 
