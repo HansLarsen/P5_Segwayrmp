@@ -5,7 +5,7 @@
 	
 	<include file="$(find hector_mapping)/launch/mapping_default.launch">
             <arg name="pub_map_odom_transform" value="true"/>
-            <arg name="scan_topic" value="scan_filtered" />
+            <arg name="scan_topic" value="/segway/scan_filtered" />
             <arg name="base_frame" value="base_link" />
             <arg name="odom_frame" value="odom" />
 	</include>
