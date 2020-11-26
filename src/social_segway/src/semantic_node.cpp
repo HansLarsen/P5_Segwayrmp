@@ -6,6 +6,7 @@
 #include "social_segway/GetObjectsInRoom.h"
 #include "social_segway/GetRooms.h"
 #include "social_segway/CheckObject.h"
+#include "social_segway/GetObjectPosById.h"
 #include "geometry_msgs/Transform.h"
 #include "std_srvs/Trigger.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -585,7 +586,6 @@ class Semantic_node
     double distance;
     float x1, y1, z1, x2, y2, z2;
 
-
     ros::Subscriber changedDetectionSub;
     ros::Subscriber detectionSub;
 
@@ -598,16 +598,17 @@ class Semantic_node
     ros::ServiceServer service_checkObject;
     ros::ServiceServer getRoomsSrv;
     ros::ServiceServer getObjectsInRoomSrv;
+    ros::ServiceServer getLocationById;
 
     void detectionCallback(const cameralauncher::ObjectList &data)
     {
         for (auto detectedObject : data.objects)
         {
-            if(detectedObject.type == "furniture")
+            if (detectedObject.type == "furniture")
                 detectedObject.type = "Furniture";
-            if(detectedObject.type == "item")
+            if (detectedObject.type == "item")
                 detectedObject.type = "Item";
-                
+
             //ROS_INFO_STREAM("for loop");
             auto allObjects = map->getAllObjects();
             //ROS_INFO_STREAM("allObjects.size(): " << allObjects.size());
@@ -755,8 +756,6 @@ class Semantic_node
             marker.color.b = 1.0;
             marker.color.g = 1.0;
             markerArray.push_back(marker);
-
-
         }
 
         visualization_msgs::MarkerArray msg;
@@ -783,9 +782,9 @@ class Semantic_node
         y2 = oldObject.transform.translation.y;
         z2 = oldObject.transform.translation.z;
 
-        oldObject.transform.translation.x = ((x2 * (tf-1)) + x1) / tf;
-        oldObject.transform.translation.y = ((y2 * (tf-1)) + y1) / tf;
-        oldObject.transform.translation.z = ((z2 * (tf-1)) + z1) / tf;
+        oldObject.transform.translation.x = ((x2 * (tf - 1)) + x1) / tf;
+        oldObject.transform.translation.y = ((y2 * (tf - 1)) + y1) / tf;
+        oldObject.transform.translation.z = ((z2 * (tf - 1)) + z1) / tf;
         //ROS_INFO_STREAM("Object: " << oldObject.objectClass << ", timesFound: " << tf << ", new x coordinate: " << oldObject.transform.translation.x);
 
         if (compare)
@@ -831,7 +830,7 @@ class Semantic_node
         response.message = "Saved map";
         return true;
     }
-    
+
     bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
     {
         if (compare)
@@ -848,8 +847,9 @@ class Semantic_node
         return true;
     }
 
-    void CheckTimeNowReady(){
-        while (true)//ros.wiki says to do this before using ros::time::now()
+    void CheckTimeNowReady()
+    {
+        while (true) //ros.wiki says to do this before using ros::time::now()
         {
             if (ros::Time::now() != ros::Time(0))
                 break;
@@ -858,29 +858,69 @@ class Semantic_node
         }
     }
 
-    bool checkObject_callback(social_segway::CheckObject::Request &request, social_segway::CheckObject::Response &response){
-        CheckTimeNowReady();     
+    bool checkObject_callback(social_segway::CheckObject::Request &request, social_segway::CheckObject::Response &response)
+    {
+        CheckTimeNowReady();
 
         if (request.id > detectedTimeStamp.size())
         {
             ROS_WARN_STREAM("requested time for ID: " << request.id << " not in array");
             response.success = false;
         }
-        else if (ros::Time::now().toSec()-detectedTimeStamp.at(request.id).toSec() < 90 )
+        else if (ros::Time::now().toSec() - detectedTimeStamp.at(request.id).toSec() < 90)
         {
             response.success = true;
         }
         return true;
     }
 
+    bool getLocationById_callback(social_segway::GetObjectPosById::Request &request, social_segway::GetObjectPosById::Response &response)
+    {
+        if (!compare && request.getChangedMap == true)
+        {
+            ROS_WARN_STREAM("Cannot call from changed map when not in compare mode!");
+            return false;
+        }
+        if (request.getChangedMap)
+        {
+            auto allChangedObjects = changes_map->getAllObjects();
+            for (auto changedObject : allChangedObjects)
+            {
+                if (request.id == changedObject.id)
+                {
+                    response.translation = changedObject.transform.translation;
+                    response.success = true;
+                    return true;
+                }
+            }
+            response.success = false;
+            return true;
+        }
+        else if (!request.getChangedMap)
+        {
+            auto allObjects = map->getAllObjects();
+            for (auto object : allObjects)
+            {
+                if (request.id == object.id)
+                {
+                    response.translation = object.transform.translation;
+                    response.success = true;
+                    return true;
+                }
+            }
+            response.success = false;
+            return true;
+        }
+    }
+
     void changeDetectionCallback(const cameralauncher::ObjectList &data)
     {
         for (auto detectedObject : data.objects)
         {
-            CheckTimeNowReady();   
-            
+            CheckTimeNowReady();
+
             detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
-            
+
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
             z1 = detectedObject.transform.translation.z;
@@ -939,7 +979,7 @@ class Semantic_node
             }
         }
     }
-    
+
     bool getRooms_callback(social_segway::GetRooms::Request &request, social_segway::GetRooms::Response &response)
     {
         std::vector<std::string> rooms;
@@ -952,7 +992,7 @@ class Semantic_node
         response.rooms = rooms;
         return true;
     }
-    
+
     bool getObjectsInRoom_callback(social_segway::GetObjectsInRoom::Request &request, social_segway::GetObjectsInRoom::Response &response)
     {
         if (request.room.length() > 0)
@@ -998,6 +1038,7 @@ public:
         service_save_map = nh->advertiseService("save_map", &Semantic_node::saveMap_callback, this);
         service_reset_map = nh->advertiseService("reset_map", &Semantic_node::resetMap_callback, this);
         getRoomsSrv = nh->advertiseService("get_rooms", &Semantic_node::getRooms_callback, this);
+        getLocationById = nh->advertiseService("get_location_by_id", &Semantic_node::getLocationById_callback, this);
         getObjectsInRoomSrv = nh->advertiseService("get_objects_in_room", &Semantic_node::getObjectsInRoom_callback, this);
 
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
