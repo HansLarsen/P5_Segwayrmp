@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<launch>
+	<group ns="segway">
+		<remap from="segway_rmp_node/odom" to="/odom" />
+		<include file="$(find social_segway)/launch/segway_with_lidar.launch">
+		</include>
+		<node pkg="tf" type="static_transform_publisher" name="base_to_lidar_broadcaster_2" args="0 0 0 0 0 0 laser_mount_link laser 100" />
+	</group>
+	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find social_segway_description)/urdf/rmp.urdf.xacro'" />
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+	</node>
+	<!--
+	<include file="$(find realsense2_camera)/launch/rs_camera.launch">
+	</include>
+	-->
+
+  	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find social_segway)/rviz/robot.rviz" output="screen"/>	
+
+	<!-- - Run Move Base -->
+	<node pkg="move_base" type="move_base" name="move_base" clear_params="true" output="screen">
+		<!-- Remap into correct namespace for mux -->
+		<param name="base_global_planner" value="global_planner/GlobalPlanner" />
+		<param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+		<!-- Change the name of the move_base; it is first checked and handled by the client that we're using -->
+		<remap from="move_base/goal" to="move_base_navi/goal" />
+		<remap from="move_base/result" to="move_base_navi/result" />
+		<remap from="move_base/feedback" to="move_base_navi/feedback" />
+		<remap from="move_base/status" to="move_base_navi/status" />
+		<remap from="move_base/cancel" to="move_base_navi/cancel" />
+		<!-- Load common configuration files
+
+		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />  -->
+		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/base_planner_params.yaml" command="load" />
+		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+		<!-- Load global/local costmap specific parameters -->
+		<rosparam file="$(find segway_navigation_apps)/config/costmaps/2d/costmap_local.yaml" command="load" />
+		<rosparam file="$(find segway_navigation_apps)/config/costmaps/2d/costmap_global_sensors.yaml" command="load" />
+	</node>
+
+	<!-- - Run gmapping -->
+	
+	<node pkg="joy" type="joy_node" name="joystick_driver">
+	</node>
+	<node pkg="teleop_twist_joy" type="teleop_node" name="joystick_to_cmdvel">
+	</node>
+	<include file="$(find social_segway)/launch/multi_cam.launch">
+	</include>
+
+	<include file="$(find social_segway)/launch/hector_mapping.launch">
+	</include>
+
+</launch>
