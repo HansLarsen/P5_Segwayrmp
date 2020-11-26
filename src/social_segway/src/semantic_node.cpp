@@ -5,6 +5,7 @@
 #include "cameralauncher/ObjectList.h"
 #include "social_segway/GetObjectsInRoom.h"
 #include "social_segway/GetRooms.h"
+#include "social_segway/CheckObject.h"
 #include "geometry_msgs/Transform.h"
 #include "std_srvs/Trigger.h"
 #include "visualization_msgs/MarkerArray.h"
@@ -576,12 +577,14 @@ void testSemanticDataHolderClass(ros::NodeHandle *nh)
 class Semantic_node
 {
     std::vector<int> timesFound;
+    std::vector<ros::Time> detectedTimeStamp;
     bool compare;
     float allowedDeviation = 0.5; // idk just some value for now
     float allowedDeviation2;
     int idCounter;
     double distance;
     float x1, y1, z1, x2, y2, z2;
+
 
     ros::Subscriber changedDetectionSub;
     ros::Subscriber detectionSub;
@@ -592,6 +595,7 @@ class Semantic_node
     Semantic_data_holder *changes_map;
     ros::ServiceServer service_save_map;
     ros::ServiceServer service_reset_map;
+    ros::ServiceServer service_checkObject;
     ros::ServiceServer getRoomsSrv;
     ros::ServiceServer getObjectsInRoomSrv;
 
@@ -827,6 +831,7 @@ class Semantic_node
         response.message = "Saved map";
         return true;
     }
+    
     bool resetMap_callback(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
     {
         if (compare)
@@ -843,10 +848,39 @@ class Semantic_node
         return true;
     }
 
+    void CheckTimeNowReady(){
+        while (true)//ros.wiki says to do this before using ros::time::now()
+        {
+            if (ros::Time::now() != ros::Time(0))
+                break;
+            ROS_WARN_STREAM("ros::Time::now() is not ready");
+            ros::Duration(0.5).sleep();
+        }
+    }
+
+    bool checkObject_callback(social_segway::CheckObject::Request &request, social_segway::CheckObject::Response &response){
+        CheckTimeNowReady();     
+
+        if (request.id > detectedTimeStamp.size())
+        {
+            ROS_WARN_STREAM("requested time for ID: " << request.id << " not in array");
+            response.success = false;
+        }
+        else if (ros::Time::now().toSec()-detectedTimeStamp.at(request.id).toSec() < 90 )
+        {
+            response.success = true;
+        }
+        return true;
+    }
+
     void changeDetectionCallback(const cameralauncher::ObjectList &data)
     {
         for (auto detectedObject : data.objects)
         {
+            CheckTimeNowReady();   
+            
+            detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
+            
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
             z1 = detectedObject.transform.translation.z;
@@ -870,7 +904,7 @@ class Semantic_node
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
                     if (!mergeObjects(detectedObject, changedObject))
-                        ROS_INFO_STREAM("Failed to merged item: " << detectedObject.objectClass);
+                        ROS_WARN_STREAM("Failed to merged item: " << detectedObject.objectClass);
                     break;
                 }
             }
@@ -905,6 +939,7 @@ class Semantic_node
             }
         }
     }
+    
     bool getRooms_callback(social_segway::GetRooms::Request &request, social_segway::GetRooms::Response &response)
     {
         std::vector<std::string> rooms;
@@ -941,12 +976,14 @@ public:
             changes_map = new Semantic_data_holder(nh, "map_changes.xml", true);
             map = new Semantic_data_holder(nh, "map.xml", false);
             changedDetectionSub = nh->subscribe("detected_objects", 1000, &Semantic_node::changeDetectionCallback, this);
+            service_checkObject = nh->advertiseService("check_object", &Semantic_node::checkObject_callback, this);
             ROS_INFO_STREAM("Semantic Node mode: Comparator");
 
             auto allObjects = map->getAllObjects();
             for (auto object : allObjects)
             {
                 timesFound.push_back(1);
+                detectedTimeStamp.push_back(ros::Time(0));
             }
         }
         else
