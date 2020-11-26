@@ -68,6 +68,7 @@ find_package(catkin REQUIRED COMPONENTS
    CheckObject.srv
    GetObjectsInRoom.srv
    GetRooms.srv
+   GetObjectPosById.srv
  )
 
 ## Generate actions in the 'action' folder

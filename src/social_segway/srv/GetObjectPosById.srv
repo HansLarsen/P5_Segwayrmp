@@ -1,0 +1,6 @@
+#returns a objects translation by id from either map
+int32 id
+bool getChangedMap=false
+---
+geometry_msgs/Vector4 translation
+bool success 
