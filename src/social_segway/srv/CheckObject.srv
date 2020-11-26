@@ -1,0 +1,6 @@
+#service to check if an object is currently detected
+int32 id
+
+---
+
+bool success 
