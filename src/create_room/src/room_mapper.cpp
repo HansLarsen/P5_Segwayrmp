@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include <ros/package.h>
 #include "geometry_msgs/PointStamped.h"
 #include <vector>
 #include <string>
@@ -159,8 +160,9 @@ public:
             res.response = "\n delete index, to delete specific room\n delete_all, to delete all rooms \n name, to save room name \n publish, to publish rooms \n show index, to show name of room at index";
         }
         else if(req.a == publish){
+            std::string pkg_path = ros::package::getPath("create_room");
 
-            MapRoom.open ("MapRoom.xml",std::ios::out);
+            MapRoom.open(pkg_path + "/map/MapRoom.xml",std::ios::out);
 
             for(std::vector<Room>::iterator it = rooms.begin(); it != rooms.end(); it++) { 
                 

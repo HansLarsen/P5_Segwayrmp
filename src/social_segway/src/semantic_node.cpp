@@ -1011,8 +1011,7 @@ class Semantic_node
 public:
     Semantic_node(ros::NodeHandle *nh)
     {
-        //ros::param::set("compare", false);
-        ros::param::get("compare", compare);
+        nh->getParam("/semantic_node/compare", compare);
 
         if (compare)
         {
