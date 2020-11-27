@@ -177,7 +177,7 @@ public:
                 std::string xstr2 = std::to_string(x2);
                 std::string ystr2 = std::to_string(y2);
 
-                std::string map_thingy = "<room name=\"" + room_name + "\">< pos x=\"" + xstr1 + "\" y=\"" + ystr1 + "\" />< pos x =\"" + xstr2 + "\" y=\"" + ystr2 + "\" />< / room > ";
+                std::string map_thingy = "<room name=\"" + room_name + "\">\n<pos x=\"" + xstr1 + "\"y=\"" + ystr1 + "\" />\n<pos x=\"" + xstr2 + "\" y=\"" + ystr2 + "\" />\n</room>\n";
                 
                 MapRoom << map_thingy;
                 
