@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="semantic_node" pkg="social_segway" type="semantic_node" output="screen"/>
+        <param name="compare" value="$(arg compare)" />
+    </node>
+    <group if="$(arg compare)">
+        <node name="main_node" pkg="social_segway" type="main_node" output="screen"/>
+    </group>
+</launch>
