@@ -13,9 +13,7 @@
 	<include file="$(find realsense2_camera)/launch/rs_camera.launch">
 	</include>
 	-->
-
-  	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find social_segway)/rviz/robot.rviz" output="screen"/>	
-
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find social_segway)/rviz/robot.rviz" output="screen" />
 	<!-- - Run Move Base -->
 	<node pkg="move_base" type="move_base" name="move_base" clear_params="true" output="screen">
 		<!-- Remap into correct namespace for mux -->
@@ -27,9 +25,11 @@
 		<remap from="move_base/feedback" to="move_base_navi/feedback" />
 		<remap from="move_base/status" to="move_base_navi/status" />
 		<remap from="move_base/cancel" to="move_base_navi/cancel" />
-		<!-- Load common configuration files
-
-		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />  -->
+		<!--
+		Load common configuration files
+		
+		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/move_base_params.yaml" command="load" />
+		-->
 		<rosparam file="$(find segway_navigation_apps)/config/RMP_220/base_planner_params.yaml" command="load" />
 		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
 		<rosparam file="$(find social_segway)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
@@ -37,17 +37,39 @@
 		<rosparam file="$(find segway_navigation_apps)/config/costmaps/2d/costmap_local.yaml" command="load" />
 		<rosparam file="$(find segway_navigation_apps)/config/costmaps/2d/costmap_global_sensors.yaml" command="load" />
 	</node>
-
-	<!-- - Run gmapping -->
-	
+	<!--
+	- Run Assisted Teleop
+	<node pkg="segway_assisted_teleop" name="segway_assisted_teleop" type="segway_assisted_teleop" clear_params="true" respawn="false" output="screen">
+	<param name="controller_frequency" value="10.0" />
+	<param name="num_th_samples" value="20" />
+	<param name="num_x_samples" value="6" />
+	<param name="diff_drive" value="$(optenv SEGWAY_IS_OMNI false)" />
+	<param name="theta_range" value="3.14" />
+	<param name="translational_collision_speed" value="0.0" />
+	<param name="rotational_collision_speed" value="1.0" />
+	<rosparam file="$(find segway_navigation_apps)/config/RMP_220/base_planner_params.yaml" command="load" />
+	<rosparam file="$(find segway_navigation_apps)/config/RMP_220/costmap_common_params.yaml" command="load" ns="local_costmap" />
+	<rosparam file="$(find segway_navigation_apps)/config/costmaps/2d/costmap_local.yaml" command="load" />
+	<remap from="teleop_cmd_vel" to="/segway/teleop/cmd_vel" />
+	<remap from="cmd_vel" to="/cmd_vel" />
+	</node>
+	-->
+	<node pkg="tf" type="static_transform_publisher" name="mapfixer" args="0 0 0 0 0 0  base_link segway/base_link 1000" />
+     <!-- MAP SERVER -->
+    <node name="loc_map_server" pkg="map_server" type="map_server" args="$(find social_segway)/map/my_map.yaml" output="screen" />
+	<!-- AMCL -->
+	<node pkg="acml" type="acml" name="acml" output="screen">
+		<!-- rosparam command="load" file="$(find segway_navigation_apps)/config/RMP_220/gmapping.yaml" / -->
+		<param name="initial_pose_x" type="double" value="0.5" />
+		<param name="initial_pose_y" type="double" value="0.5" />
+        <remap from="initialpose" to="initialpose" />
+		<remap from="scan" to="/segway/scan_filtered" />
+		
+	</node>
 	<node pkg="joy" type="joy_node" name="joystick_driver">
 	</node>
 	<node pkg="teleop_twist_joy" type="teleop_node" name="joystick_to_cmdvel">
 	</node>
 	<include file="$(find social_segway)/launch/multi_cam.launch">
 	</include>
-
-	<include file="$(find social_segway)/launch/hector_mapping.launch">
-	</include>
-
 </launch>
