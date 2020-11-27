@@ -662,7 +662,7 @@ class Semantic_node
         {
             CheckTimeNowReady();
 
-            if (detectedObject.objectclass == "diningtable") // ignore tables in phase 1 for testing purposes
+            if (detectedObject.objectClass == "diningtable") // ignore tables in phase 1 for testing purposes
                 continue;            
 
             detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
