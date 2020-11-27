@@ -155,8 +155,8 @@ if __name__ == '__main__':
 
             # Den her er bagvendt fordi det er row,column altsaa y,x.
             centerBox_z = depthImageCv[centerBox_x, centerBox_y]
-            rospy.logerr("_____________z distance is_______________")
-            rospy.logerr(centerBox_z)
+            # rospy.logerr("_____________z distance is_______________")
+            # rospy.logerr(centerBox_z)
 
             if centerBox_z < 1.0:
                 rospy.logerr("Short distance")
@@ -164,7 +164,7 @@ if __name__ == '__main__':
 
             #newImage = cv2.rectangle(newImage, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
             #newImage = cv2.resize(newImage, (newImage.shape[1] / 2, newImage.shape[0] / 2) )
-            rospy.logwarn("got_this")
+            #rospy.logwarn("got_this")
             #cv2.imshow("Cakesdatas", newImage)
             # cv2.waitKey(1)
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
             current_camera_index = 0
 
         if (len(itemsInImageArray.objects) == 0):
-            rospy.logerr("Array is empty")
+            #rospy.logerr("Array is empty")
             continue
 
         pub_obj.publish(itemsInImageArray)

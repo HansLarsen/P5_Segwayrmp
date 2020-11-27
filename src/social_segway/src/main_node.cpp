@@ -172,8 +172,8 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
         ROS_WARN("%s", ex.what());
         return false;
     }
-    ROS_INFO_STREAM(robotTransform);
-    ROS_INFO_STREAM(object.transform);
+    //ROS_INFO_STREAM(robotTransform);
+    //ROS_INFO_STREAM(object.transform);
 
     float distance = distanceBetweenTransforms(robotTransform.transform, object.transform);
     if (distance > MAX_OBJECT_DISTANCE)
@@ -209,13 +209,13 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     float angle = angleBetweenVectors(robot_x_axis, object_pos);
     if (abs(angle) > 45.0 * DEGREES_TO_RADIANS)
     {
-        ROS_INFO_STREAM("Object in range (" << distance << "), but not facing it yet (angle=" << angle * RADIANS_TO_DEGREES << " degrees)");
+        ROS_INFO_STREAM(NODE_NAME << object.objectClass << " in range (" << distance << "), but not facing it yet (angle=" << angle * RADIANS_TO_DEGREES << " degrees)");
         ros::Duration(1.0).sleep();
         return false;
     }
 
-    ROS_INFO_STREAM("Got object in sight, distance: " << distance << ", angle: " << angle * RADIANS_TO_DEGREES);
-    ROS_INFO_STREAM("\n\n\n");
+    ROS_INFO_STREAM(NODE_NAME << "Got" << object.objectClass << " in sight, distance: " << distance << ", angle: " << angle * RADIANS_TO_DEGREES << "\n");
+    return true;
 }
 
 int main(int argc, char **argv)
@@ -348,12 +348,12 @@ int main(int argc, char **argv)
                 getCheckObjectSrv.call(checkingObjectMSG);
 
                 if (checkingObjectMSG.response.success) {
-                    ROS_INFO_STREAM("Object found at id:" << object.id << " in room: " << curRoomNum << std::endl);
+                    ROS_INFO_STREAM(NODE_NAME << object.objectClass <<" detect at id:" << object.id << " in room: " << curRoomNum << std::endl);
                     object.object_at_default = true;
                 }
                 else
                 {
-                    ROS_WARN_STREAM("Object not found found at id:" << object.id << " in room: " << curRoomNum << std::endl);
+                    ROS_WARN_STREAM(NODE_NAME << object.objectClass << " not detect found at id:" << object.id << " in room: " << curRoomNum << std::endl);
                     object.object_at_default = false;
                 }
                 ros::Duration(1.0).sleep();
@@ -370,7 +370,7 @@ int main(int argc, char **argv)
         if (workingRoom.room_visited) {
             ROS_INFO_STREAM("---------------- Current Room : " << workingRoom.name << " -------------------------");
             for (ObjectData workingObject : workingRoom.objects) {
-                ROS_INFO_STREAM("Object at default: " << workingObject.object_at_default << " Objecttype: " << workingObject.type);
+                ROS_INFO_STREAM(NODE_NAME << "Object at default: " << workingObject.object_at_default << " Objecttype: " << workingObject.type);
             }
         }
     }
@@ -397,14 +397,18 @@ int main(int argc, char **argv)
     if (getObjectPosById.call(checkingObjectMSG) == true) {
         if (checkingObjectMSG.response.success) {
             pub_marker_single(*object_move_to_default, targetObjectPub);
-            ROS_INFO_STREAM("Goto first object");
+            ROS_INFO_STREAM(NODE_NAME << "Goto first " << object_move_to_default->objectClass);
         }
-        ROS_ERROR("EPIC FAIL");
-        return 0;
+        else
+        {
+            ROS_ERROR_STREAM(NODE_NAME << "EPIC FAIL");
+            return 0;
+        }
+
     }
     else
     {
-        ROS_ERROR("EPIC FAIL");
+        ROS_ERROR_STREAM(NODE_NAME << "EPIC FAIL");
         return 0;
     }
 
@@ -412,14 +416,14 @@ int main(int argc, char **argv)
     newTmp.transform.translation = checkingObjectMSG.response.translation;
 
     while(!check_angle_dist_to_target(&tfBuffer, newTmp)) {
-        ROS_INFO_STREAM("Move me closer so that i may hit them with my sword!");
+        ROS_INFO_STREAM(NODE_NAME << "Move me closer so that i may hit them with my sword!");
         ros::Duration(1).sleep();
     }
 
-    ROS_INFO_STREAM("Put the object infront of me ontop of me!");
+    ROS_INFO_STREAM(NODE_NAME << "Put the object infront of me ontop of me!");
 
     while(!check_angle_dist_to_target(&tfBuffer, *object_move_to_default)) {
-        ROS_INFO_STREAM("Move me closer so that i may hit them with my sword!");
+        ROS_INFO_STREAM(NODE_NAME << "Move me closer so that i may hit them with my sword!");
         ros::Duration(1).sleep();
     }
 
@@ -433,6 +437,6 @@ int main(int argc, char **argv)
     //if (client.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
     */
 
-    ROS_INFO_STREAM("Done ski!");
+    ROS_INFO_STREAM(NODE_NAME << "Done ski!");
     return 0;
 }

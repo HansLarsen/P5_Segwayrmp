@@ -658,13 +658,14 @@ class Semantic_node
 
     void changeDetectionCallback(const cameralauncher::ObjectList &data)
     {
+        CheckTimeNowReady();
+
         for (auto detectedObject : data.objects)
         {
-            CheckTimeNowReady();
 
             if (detectedObject.objectClass == "diningtable") // ignore tables in phase 1 for testing purposes
                 continue;            
-
+            ROS_INFO_STREAM("[semantic node] object detected: " << detectedObject.objectClass);
             detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
 
             x1 = detectedObject.transform.translation.x;
@@ -697,6 +698,7 @@ class Semantic_node
 
             if (!merged)
             {
+                ROS_INFO_STREAM("[semantic node] object  not merged");
                 auto allObjects = map->getAllObjects();
 
                 if (allObjects.size() == 0) // no objects in map
