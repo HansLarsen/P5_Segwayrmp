@@ -57,7 +57,7 @@ if __name__ == '__main__':
     transform_broadcaster = tf2_ros.TransformBroadcaster()
     transform_message = geometry_msgs.msg.TransformStamped()
 
-    tfBuffer = tf2_ros.Buffer()
+    tfBuffer = tf2_ros.Buffer(cache_time=rospy.Duration(secs=20.0))
     listener = tf2_ros.TransformListener(tfBuffer)
 
     while not rospy.is_shutdown():
@@ -111,6 +111,7 @@ if __name__ == '__main__':
         if (restartFlag):
             continue
 
+        rospy.loginfo("Got info from Yolo")
 
         itemsInImageArray = ObjectList()
 
@@ -154,8 +155,10 @@ if __name__ == '__main__':
 
             # Den her er bagvendt fordi det er row,column altsaa y,x.
             centerBox_z = depthImageCv[centerBox_x, centerBox_y]
+            rospy.logerr("_____________z distance is_______________")
+            rospy.logerr(centerBox_z)
 
-            if centerBox_z < 10.0:
+            if centerBox_z < 1.0:
                 rospy.logerr("Short distance")
                 continue
 
@@ -182,7 +185,7 @@ if __name__ == '__main__':
             transform_rel_map = {}
             try:
                 transform_rel_map = tfBuffer.lookup_transform(
-                    "map", msg.bounding_boxes[i].Class, depth_image.header.stamp)
+                    "map", msg.bounding_boxes[i].Class, depth_image.header.stamp, rospy.Duration(0.5))
 
                 itemsInImageArray.header.frame_id = transform_rel_map.header.frame_id
                 items.transform = transform_rel_map.transform
