@@ -1,0 +1,32 @@
+<map>
+    <Room name="Unknown">
+        <Item>
+            <bottle id="2">
+                <Transform>
+                    <Translation x="2.4337730196709066" y="-3.0358301549426736" z="0.21011066371067791"/>
+                    <Rotation x="-0.71028172876689488" y="0.57515939406909433" z="-0.22043666622216299" w="-0.340733352790351"/>
+                </Transform>
+            </bottle>
+        </Item>
+    </Room>
+    <Room name="test">
+        <Item>
+            <bottle id="0">
+                <Transform>
+                    <Translation x="1.8011833586151491" y="-1.3354059934148894" z="0.7656836727751456"/>
+                    <Rotation x="-0.91294388401096738" y="0.042730490815136711" z="-0.37944630113111566" w="-0.14397249280502636"/>
+                </Transform>
+            </bottle>
+        </Item>
+        <Furniture>
+            <diningtable id="1">
+                <Transform>
+                    <Translation x="2.2530506877249201" y="-1.2797757521755129" z="-0.0092897893831465767"/>
+                    <Rotation x="0.38713598865664645" y="0.82711692276288618" z="-0.05408450312618919" w="0.40382936944997583"/>
+                </Transform>
+            </diningtable>
+        </Furniture>
+    </Room>
+    <Room name="kitchen"/>
+    <Room name="living_room"/>
+</map>
