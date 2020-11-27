@@ -656,6 +656,76 @@ class Semantic_node
         }
     }
 
+    void changeDetectionCallback(const cameralauncher::ObjectList &data)
+    {
+        for (auto detectedObject : data.objects)
+        {
+            CheckTimeNowReady();
+
+            if (detectedObject.objectclass == "table") // ignore tables in phase 1 for testing purposes
+                continue;            
+
+            detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
+
+            x1 = detectedObject.transform.translation.x;
+            y1 = detectedObject.transform.translation.y;
+            z1 = detectedObject.transform.translation.z;
+
+            bool merged = false;
+
+            auto allChangedObjects = changes_map->getAllObjects();
+            for (auto changedObject : allChangedObjects) // check if merge
+            {
+                if (allChangedObjects.size() == 0) // no objects in map to merge
+                    break;
+
+                x2 = changedObject.transform.translation.x;
+                y2 = changedObject.transform.translation.y;
+                z2 = changedObject.transform.translation.z;
+
+                distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
+
+                if (distance < allowedDeviation && detectedObject.objectClass == changedObject.objectClass && detectedObject.type == changedObject.type)
+                {
+                    ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
+                    merged = true;
+                    if (!mergeObjects(detectedObject, changedObject))
+                        ROS_WARN_STREAM("Failed to merged item: " << detectedObject.objectClass);
+                    break;
+                }
+            }
+
+            if (!merged)
+            {
+                auto allObjects = map->getAllObjects();
+
+                if (allObjects.size() == 0) // no objects in map
+                {
+                    ROS_FATAL("NO OBJECTS IN MAP.XML");
+                    exit(1);
+                }
+
+                for (auto object : allObjects)
+                {
+                    x2 = object.transform.translation.x;
+                    y2 = object.transform.translation.y;
+                    z2 = object.transform.translation.z;
+
+                    distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
+
+                    if (distance > allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
+                    {
+                        // add item to list
+                        ROS_INFO_STREAM("Adding changed item: " << detectedObject.objectClass);
+                        detectedObject.id = object.id;
+                        changes_map->addObjectByPosition(detectedObject);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     void checkOnTopAll()
     {
         // Check if LooseObject is on top of Furniture object
@@ -910,73 +980,6 @@ class Semantic_node
             }
             response.success = false;
             return true;
-        }
-    }
-
-    void changeDetectionCallback(const cameralauncher::ObjectList &data)
-    {
-        for (auto detectedObject : data.objects)
-        {
-            CheckTimeNowReady();
-
-            detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
-
-            x1 = detectedObject.transform.translation.x;
-            y1 = detectedObject.transform.translation.y;
-            z1 = detectedObject.transform.translation.z;
-
-            bool merged = false;
-
-            auto allChangedObjects = changes_map->getAllObjects();
-            for (auto changedObject : allChangedObjects) // check if merge
-            {
-                if (allChangedObjects.size() == 0) // no objects in map to merge
-                    break;
-
-                x2 = changedObject.transform.translation.x;
-                y2 = changedObject.transform.translation.y;
-                z2 = changedObject.transform.translation.z;
-
-                distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
-
-                if (distance < allowedDeviation && detectedObject.objectClass == changedObject.objectClass && detectedObject.type == changedObject.type)
-                {
-                    ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
-                    merged = true;
-                    if (!mergeObjects(detectedObject, changedObject))
-                        ROS_WARN_STREAM("Failed to merged item: " << detectedObject.objectClass);
-                    break;
-                }
-            }
-
-            if (!merged)
-            {
-                auto allObjects = map->getAllObjects();
-
-                if (allObjects.size() == 0) // no objects in map
-                {
-                    ROS_FATAL("NO OBJECTS IN MAP.XML");
-                    exit(1);
-                }
-
-                for (auto object : allObjects)
-                {
-                    x2 = object.transform.translation.x;
-                    y2 = object.transform.translation.y;
-                    z2 = object.transform.translation.z;
-
-                    distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
-
-                    if (distance > allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
-                    {
-                        // add item to list
-                        ROS_INFO_STREAM("Adding changed item: " << detectedObject.objectClass);
-                        detectedObject.id = object.id;
-                        changes_map->addObjectByPosition(detectedObject);
-                        break;
-                    }
-                }
-            }
         }
     }
 
