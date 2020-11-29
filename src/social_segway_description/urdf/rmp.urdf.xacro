@@ -72,11 +72,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
                          iyx="0.017871"  iyy="4.732620" iyz="-0.000290"
                          izx="-0.023004" izy="-0.000290" izz="1.951671" />
 			</inertial>
-            <collision>
+            <!--collision>
 				<geometry>
-					<!--<mesh filename="package://segway_description/meshes/collision/RMP220_chassis_collision.stl" />-->
+					<<mesh filename="package://segway_description/meshes/collision/RMP220_chassis_collision.stl" />>
 				</geometry>
-			</collision>
+			</collision-->
 		</link>
 		
 		<joint name="inertial_collision_joint" type="fixed" >
