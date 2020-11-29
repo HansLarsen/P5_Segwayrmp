@@ -1,5 +1,4 @@
- 
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 ## BEGIN_TUTORIAL
 ##
@@ -11,6 +10,10 @@ import roslib; roslib.load_manifest('rviz_python_tutorial')
 
 ## Then load sys to get sys.argv.
 import sys
+import os
+import rospkg
+import rospy
+from create_room.srv import Rvizcommand
 
 ## Next import all the Qt bindings into the current namespace, for
 ## convenience.  This uses the "python_qt_binding" package which hides
@@ -19,6 +22,10 @@ import sys
 ## python_qt_binding internally, so you should use it here as well.
 from python_qt_binding.QtGui import *
 from python_qt_binding.QtCore import *
+try:
+    from python_qt_binding.QtWidgets import *
+except ImportError:
+    pass
 
 ## Finally import the RViz bindings themselves.
 import rviz
@@ -34,6 +41,14 @@ class MyViz( QWidget ):
     ## to layouts.
     def __init__(self):
         QWidget.__init__(self)
+
+        try:
+            self.rvizcommand = rospy.ServiceProxy('rvizcommand', Rvizcommand)
+            self.rvizcommand(a="delete_all")
+        except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
+
+        rospack = rospkg.RosPack()
 
         ## rviz.VisualizationFrame is the main container widget of the
         ## regular RViz application, with menus, a toolbar, a status
@@ -58,7 +73,7 @@ class MyViz( QWidget ):
         ## VisualizationFrame reads its data from the config object.
         reader = rviz.YamlConfigReader()
         config = rviz.Config()
-        reader.readFile( config, "config.myviz" )
+        reader.readFile( config, os.path.join(rospack.get_path('social_segway_gui'), "config.rviz" ))
         self.frame.load( config )
 
         ## You can also store any other application data you like in
@@ -89,48 +104,45 @@ class MyViz( QWidget ):
         
         ## Here we create the layout and other widgets in the usual Qt way.
         layout = QVBoxLayout()
+
+        self.statusLabel = QLabel()
+        self.statusLabel.setText("Input name, click current room name, add two points for a room, click save to save the current room, once all the rooms are in click save to xml.")
+        layout.addWidget(self.statusLabel)
+
         layout.addWidget( self.frame )
-        
-        thickness_slider = QSlider( Qt.Horizontal )
-        thickness_slider.setTracking( True )
-        thickness_slider.setMinimum( 1 )
-        thickness_slider.setMaximum( 1000 )
-        thickness_slider.valueChanged.connect( self.onThicknessSliderChanged )
-        layout.addWidget( thickness_slider )
+
+        self.textBox = QLineEdit("Room Name here")
+        layout.addWidget(self.textBox)
         
         h_layout = QHBoxLayout()
         
-        top_button = QPushButton( "Top View" )
+        top_button = QPushButton( "Set room name" )
         top_button.clicked.connect( self.onTopButtonClick )
         h_layout.addWidget( top_button )
         
-        side_button = QPushButton( "Side View" )
+        side_button = QPushButton( "Save current room" )
         side_button.clicked.connect( self.onSideButtonClick )
         h_layout.addWidget( side_button )
+
+        publish_button = QPushButton( "Save rooms xml" )
+        publish_button.clicked.connect( self.publishButtonClick )
+        h_layout.addWidget( publish_button )
         
         layout.addLayout( h_layout )
         
         self.setLayout( layout )
 
-    ## Handle GUI events
-    ## ^^^^^^^^^^^^^^^^^
-    ##
-    ## After the constructor, for this example the class just needs to
-    ## respond to GUI events.  Here is the slider callback.
-    ## rviz.Display is a subclass of rviz.Property.  Each Property can
-    ## have sub-properties, forming a tree.  To change a Property of a
-    ## Display, use the subProp() function to walk down the tree to
-    ## find the child you need.
-    def onThicknessSliderChanged( self, new_value ):
-        if self.grid_display != None:
-            self.grid_display.subProp( "Line Style" ).subProp( "Line Width" ).setValue( new_value / 1000.0 )
 
     ## The view buttons just call switchToView() with the name of a saved view.
     def onTopButtonClick( self ):
-        self.switchToView( "Top View" );
+        print(self.rvizcommand(a=self.textBox.text(),b=0))
+        
         
     def onSideButtonClick( self ):
-        self.switchToView( "Side View" );
+        print(self.rvizcommand(a="save"))
+
+    def publishButtonClick( self ):
+        print(self.rvizcommand(a="publish"))
         
     ## switchToView() works by looping over the views saved in the
     ## ViewManager and looking for one with a matching name.
@@ -146,6 +158,11 @@ class MyViz( QWidget ):
                 return
         print( "Did not find view named %s." % view_name )
 
+
+def checkIfRosOK():
+    if(rospy.is_shutdown()):
+        sys.exit()
+
 ## Start the Application
 ## ^^^^^^^^^^^^^^^^^^^^^
 ##
@@ -153,10 +170,16 @@ class MyViz( QWidget ):
 ## top-level application code: create a QApplication, instantiate our
 ## class, and start Qt's main event loop (app.exec_()).
 if __name__ == '__main__':
+    global app
+    rospy.init_node('room_gui_node')
     app = QApplication( sys.argv )
 
     myviz = MyViz()
-    myviz.resize( 500, 500 )
+    myviz.resize( 1080, 1080 )
     myviz.show()
+
+    timer = QTimer()
+    timer.timeout.connect(checkIfRosOK)
+    timer.start(1000)
 
     app.exec_()
