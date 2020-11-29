@@ -665,8 +665,6 @@ class Semantic_node
 
             if (detectedObject.objectClass == "diningtable") // ignore tables in phase 1 for testing purposes
                 continue;            
-            ROS_INFO_STREAM("[semantic node] object detected: " << detectedObject.objectClass);
-            detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
 
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
@@ -688,6 +686,10 @@ class Semantic_node
 
                 if (distance < allowedDeviation && detectedObject.objectClass == changedObject.objectClass && detectedObject.type == changedObject.type)
                 {
+                    ROS_INFO_STREAM("[semantic node] object detected: " << detectedObject.objectClass);
+                    //ROS_INFO_STREAM("Cakes " << detectedObject.id);
+                    detectedTimeStamp.at(changedObject.id) = ros::Time::now();
+
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
                     if (!mergeObjects(detectedObject, changedObject))
@@ -698,7 +700,7 @@ class Semantic_node
 
             if (!merged)
             {
-                ROS_INFO_STREAM("[semantic node] object  not merged");
+                ROS_INFO_STREAM("[semantic node] object: "<< detectedObject.objectClass <<"not merged");
                 auto allObjects = map->getAllObjects();
 
                 if (allObjects.size() == 0) // no objects in map
@@ -713,6 +715,7 @@ class Semantic_node
                     y2 = object.transform.translation.y;
                     z2 = object.transform.translation.z;
 
+
                     distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
 
                     if (distance > allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
@@ -721,8 +724,16 @@ class Semantic_node
                         ROS_INFO_STREAM("Adding changed item: " << detectedObject.objectClass);
                         detectedObject.id = object.id;
                         changes_map->addObjectByPosition(detectedObject);
+                        detectedTimeStamp.at(object.id) = ros::Time::now();
                         break;
                     }
+                    else if (distance < allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
+                    {
+                        detectedTimeStamp.at(object.id) = ros::Time::now();
+                        ROS_INFO_STREAM("Found but not adding changed item: " << detectedObject.objectClass);
+                        break;
+                    }
+                    
                 }
             }
         }
@@ -939,7 +950,7 @@ class Semantic_node
             ROS_WARN_STREAM("requested time for ID: " << request.id << " not in array");
             response.success = false;
         }
-        else if (ros::Time::now().toSec() - detectedTimeStamp.at(request.id).toSec() < 90)
+        else if (ros::Time::now().toSec() - detectedTimeStamp.at(request.id).toSec() < 10)
         {
             response.success = true;
         }
