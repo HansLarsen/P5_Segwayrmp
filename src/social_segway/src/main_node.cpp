@@ -215,6 +215,45 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     }
 
     ROS_INFO_STREAM(NODE_NAME << "Got" << object.objectClass << " in sight, distance: " << distance << ", angle: " << angle * RADIANS_TO_DEGREES << "\n");
+
+    /*
+    marker = visualization_msgs::Marker();
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time();
+    marker.ns = "main_node";
+    marker.id = 2;
+    marker.type = visualization_msgs::Marker::ARROW;
+    marker.action = visualization_msgs::Marker::ADD;
+    geometry_msgs::Point pointZero;
+    pointZero.x = 0;
+    pointZero.y = 0;
+    pointZero.z = 0;
+    marker.points.push_back(pointZero);
+    geometry_msgs::Point pointEnd;
+    pointEnd.x = robot_x_axis.x();
+    pointEnd.y = robot_x_axis.y();
+    pointEnd.z = 0;
+    marker.points.push_back(pointEnd);
+    
+    marker.scale.x = 0.05;
+    marker.scale.y = 0.07;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 1.0;
+    marker.lifetime = ros::Duration(0);
+    msg.markers.push_back(marker);
+    marker.id = 3;
+    marker.points[1].x = object.transform.translation.x;
+    marker.points[1].y = object.transform.translation.y;
+    marker.points[1].z = 0;
+    marker.color.b = 0.0;
+    marker.color.g = 1.0;
+    msg.markers.push_back(marker);
+    targetObjectPub.publish(msg);
+    */
+    //object in range, and we can see it
+    
     return true;
 }
 
@@ -288,6 +327,10 @@ int main(int argc, char **argv)
         std::cin >> answer;
         int curRoomNum = (int)answer - 48;
 
+        if (curRoomNum > roomData.size()){
+            break;
+        }
+
         auto curRoom = roomData[curRoomNum];
 
         for (auto object : curRoom.objects)
@@ -301,44 +344,6 @@ int main(int argc, char **argv)
                     ros::spinOnce();
                     ros::Duration(0.5).sleep();
                 }
-
-                /*
-                marker = visualization_msgs::Marker();
-                marker.header.frame_id = "map";
-                marker.header.stamp = ros::Time();
-                marker.ns = "main_node";
-                marker.id = 2;
-                marker.type = visualization_msgs::Marker::ARROW;
-                marker.action = visualization_msgs::Marker::ADD;
-                geometry_msgs::Point pointZero;
-                pointZero.x = 0;
-                pointZero.y = 0;
-                pointZero.z = 0;
-                marker.points.push_back(pointZero);
-                geometry_msgs::Point pointEnd;
-                pointEnd.x = robot_x_axis.x();
-                pointEnd.y = robot_x_axis.y();
-                pointEnd.z = 0;
-                marker.points.push_back(pointEnd);
-                
-                marker.scale.x = 0.05;
-                marker.scale.y = 0.07;
-                marker.color.a = 1.0;
-                marker.color.r = 0.0;
-                marker.color.g = 0.0;
-                marker.color.b = 1.0;
-                marker.lifetime = ros::Duration(0);
-                msg.markers.push_back(marker);
-                marker.id = 3;
-                marker.points[1].x = object.transform.translation.x;
-                marker.points[1].y = object.transform.translation.y;
-                marker.points[1].z = 0;
-                marker.color.b = 0.0;
-                marker.color.g = 1.0;
-                msg.markers.push_back(marker);
-                targetObjectPub.publish(msg);
-                */
-                //object in range, and we can see it
 
                 reached = true;
 
@@ -366,7 +371,10 @@ int main(int argc, char **argv)
         }
     }
 
+    ROS_INFO_STREAM("-------------------HEJ-------------");
+
     for (RoomData workingRoom : roomData) {
+        ROS_INFO_STREAM(workingRoom.name);
         if (workingRoom.room_visited) {
             ROS_INFO_STREAM("---------------- Current Room : " << workingRoom.name << " -------------------------");
             for (ObjectData workingObject : workingRoom.objects) {
