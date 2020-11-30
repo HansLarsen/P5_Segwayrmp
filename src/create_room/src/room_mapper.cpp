@@ -160,9 +160,9 @@ public:
             res.response = "\n delete index, to delete specific room\n delete_all, to delete all rooms \n name, to save room name \n publish, to publish rooms \n show index, to show name of room at index";
         }
         else if(req.a == publish){
-            std::string pkg_path = ros::package::getPath("create_room");
+            std::string pkg_path = ros::package::getPath("social_segway");
 
-            MapRoom.open(pkg_path + "/map/MapRoom.xml",std::ios::out);
+            MapRoom.open(pkg_path + "/map/rooms.xml",std::ios::out);
 
             for(std::vector<Room>::iterator it = rooms.begin(); it != rooms.end(); it++) { 
                 

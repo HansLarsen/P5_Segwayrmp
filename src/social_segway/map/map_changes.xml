@@ -1,0 +1,15 @@
+<map>
+    <Room name="Unknown"/>
+    <Room name="kitchen"/>
+    <Room name="living_room">
+        <Furniture>
+            <chair id="2">
+                <Transform>
+                    <Translation x="0.91694706922211733" y="-0.35044222744841358" z="-0.016069465612690948"/>
+                    <Rotation x="0.6770452179709967" y="0.62179460538401421" z="-0.19557799157143568" w="0.34165839883354937"/>
+                </Transform>
+            </chair>
+        </Furniture>
+    </Room>
+    <Room name="bathroom"/>
+</map>

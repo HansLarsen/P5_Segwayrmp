@@ -22,6 +22,8 @@
 #define DEGREES_TO_RADIANS 0.01745329
 #define RADIANS_TO_DEGREES 57.2957878
 
+ros::Publisher * marker_pub; 
+
 /* NODE FLOW
     //PHASE 2 - search for changes
         Take input to which room there is a change in
@@ -215,6 +217,38 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     }
 
     ROS_INFO_STREAM(NODE_NAME << "Got" << object.objectClass << " in sight, distance: " << distance << ", angle: " << angle * RADIANS_TO_DEGREES << "\n");
+
+    visualization_msgs::Marker marker = visualization_msgs::Marker();
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time();
+    marker.ns = "main_node";
+    marker.id = 2;
+    marker.type = visualization_msgs::Marker::ARROW;
+    marker.action = visualization_msgs::Marker::ADD;
+    geometry_msgs::Point pointZero;
+    pointZero.x = object.transform.translation.x;
+    pointZero.y = object.transform.translation.y;
+    pointZero.z = 0;
+    marker.points.push_back(pointZero);
+
+    geometry_msgs::Point pointEnd;
+    pointEnd.x = robot_x_axis.x();
+    pointEnd.y = robot_x_axis.y();
+    pointEnd.z = 0;
+    marker.points.push_back(pointEnd);
+    
+    marker.scale.x = 0.05;
+    marker.scale.y = 0.07;
+    marker.color.a = 1.0;
+    marker.color.r = 0.0;
+    marker.color.g = 0.0;
+    marker.color.b = 1.0;
+    marker.lifetime = ros::Duration(10);
+    
+    marker_pub->publish(marker);
+
+    //object in range, and we can see it
+    
     return true;
 }
 
@@ -223,11 +257,14 @@ int main(int argc, char **argv)
 
     ros::init(argc, argv, "Main_node");
     ros::NodeHandle n;
-    ros::Publisher targetObjectPub = n.advertise<visualization_msgs::MarkerArray>("target_object", 10);
+    ros::Publisher targetObjectPub = n.advertise<visualization_msgs::MarkerArray>("visualization_marker_array", 10);
     ros::ServiceClient getRoomsSrv = n.serviceClient<social_segway::GetRooms>("/get_rooms");
     ros::ServiceClient getObjectsSrv = n.serviceClient<social_segway::GetObjectsInRoom>("/get_objects_in_room");
     ros::ServiceClient getCheckObjectSrv = n.serviceClient<social_segway::CheckObject>("/check_object");
     ros::ServiceClient getObjectPosById = n.serviceClient<social_segway::GetObjectPosById>("/get_location_by_id");
+    ros::Publisher marker_pub_holder = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+    marker_pub = &marker_pub_holder;
+
     std::vector<RoomData> roomData;
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
@@ -288,6 +325,10 @@ int main(int argc, char **argv)
         std::cin >> answer;
         int curRoomNum = (int)answer - 48;
 
+        if (curRoomNum > roomData.size()){
+            break;
+        }
+
         auto curRoom = roomData[curRoomNum];
 
         for (auto object : curRoom.objects)
@@ -301,44 +342,6 @@ int main(int argc, char **argv)
                     ros::spinOnce();
                     ros::Duration(0.5).sleep();
                 }
-
-                /*
-                marker = visualization_msgs::Marker();
-                marker.header.frame_id = "map";
-                marker.header.stamp = ros::Time();
-                marker.ns = "main_node";
-                marker.id = 2;
-                marker.type = visualization_msgs::Marker::ARROW;
-                marker.action = visualization_msgs::Marker::ADD;
-                geometry_msgs::Point pointZero;
-                pointZero.x = 0;
-                pointZero.y = 0;
-                pointZero.z = 0;
-                marker.points.push_back(pointZero);
-                geometry_msgs::Point pointEnd;
-                pointEnd.x = robot_x_axis.x();
-                pointEnd.y = robot_x_axis.y();
-                pointEnd.z = 0;
-                marker.points.push_back(pointEnd);
-                
-                marker.scale.x = 0.05;
-                marker.scale.y = 0.07;
-                marker.color.a = 1.0;
-                marker.color.r = 0.0;
-                marker.color.g = 0.0;
-                marker.color.b = 1.0;
-                marker.lifetime = ros::Duration(0);
-                msg.markers.push_back(marker);
-                marker.id = 3;
-                marker.points[1].x = object.transform.translation.x;
-                marker.points[1].y = object.transform.translation.y;
-                marker.points[1].z = 0;
-                marker.color.b = 0.0;
-                marker.color.g = 1.0;
-                msg.markers.push_back(marker);
-                targetObjectPub.publish(msg);
-                */
-                //object in range, and we can see it
 
                 reached = true;
 
@@ -366,7 +369,10 @@ int main(int argc, char **argv)
         }
     }
 
+    ROS_INFO_STREAM("-------------------HEJ-------------");
+
     for (RoomData workingRoom : roomData) {
+        ROS_INFO_STREAM(workingRoom.name);
         if (workingRoom.room_visited) {
             ROS_INFO_STREAM("---------------- Current Room : " << workingRoom.name << " -------------------------");
             for (ObjectData workingObject : workingRoom.objects) {
