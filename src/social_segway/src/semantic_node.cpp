@@ -580,8 +580,8 @@ class Semantic_node
     std::vector<int> timesFound;
     std::vector<ros::Time> detectedTimeStamp;
     bool compare;
-    float allowedDeviation = 0.5; // idk just some value for now
-    float allowedDeviation2;
+    float allowedDeviation = 0.5; // just some value for testing purposes
+    float allowedDeviation2 = 1; // just some value for testing purposes
     int idCounter;
     double distance;
     float x1, y1, z1, x2, y2, z2;
@@ -764,17 +764,6 @@ class Semantic_node
                 if (z2 > z1)
                 { // if higher
                     //ROS_INFO_STREAM("Checking On Top, object is higher!");
-
-                    if (Furniture.objectClass == "dinner_table")
-                        allowedDeviation2 = 1; // estimated radius of the Furniture upper surface
-                    else if (Furniture.objectClass == "shelve")
-                        allowedDeviation2 = 2;
-                    else if (Furniture.objectClass == "coffee_table")
-                        allowedDeviation2 = 0.5;
-                    else
-                        allowedDeviation2 = 0.2;
-                    //ect
-
                     if (distance < allowedDeviation2)
                     {
                         //ROS_INFO_STREAM("placeobjetonfurin");

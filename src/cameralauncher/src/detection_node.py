@@ -19,7 +19,7 @@ import tf2_geometry_msgs
 #import pyrealsense2
 
 knownList = {24: "Item", 25: "Item", 26: "Item", 27: "Item", 28: "Item", 39: "Item", 40: "Item", 41: "Item", 42: "Item", 43: "Item", 44: "Item", 45: "Item", 46: "Item", 47: "Item", 48: "Item", 49: "Item", 50: "Item", 51: "Item", 52: "Item", 53: "Item", 54: "Item", 55: "Item", 56: "Furniture",
-             57: "Furniture", 58: "Item", 59: "Furniture", 60: "Furniture", 61: "Furniture", 62: "Furniture", 63: "Item", 64: "Item", 65: "Item", 66: "Item", 67: "Item", 68: "Item", 69: "Furniture", 70: "Item", 71: "Furniture", 72: "Furniture", 73: "Item", 74: "Item", 75: "Item", 76: "Item", 78: "Item", 79: "Item"}
+             57: "Furniture", 58: "Item", 59: "Furniture", 60: "Furniture", 61: "Furniture", 62: "Furniture", 63: "Item", 64: "Item", 65: "Item", 67: "Item", 68: "Item", 69: "Furniture", 70: "Item", 71: "Furniture", 73: "Item", 74: "Item", 75: "Item", 76: "Item", 78: "Item", 79: "Item"}
 
 number_of_cameras = 2
 camera_rotation = [cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE]
