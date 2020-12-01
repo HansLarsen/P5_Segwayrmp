@@ -262,10 +262,11 @@ int main(int argc, char **argv)
     ros::ServiceClient getObjectsSrv = n.serviceClient<social_segway::GetObjectsInRoom>("/get_objects_in_room");
     ros::ServiceClient getCheckObjectSrv = n.serviceClient<social_segway::CheckObject>("/check_object");
     ros::ServiceClient getObjectPosById = n.serviceClient<social_segway::GetObjectPosById>("/get_location_by_id");
-    ros::Publisher marker_pub_holder = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+    ros::Publisher marker_pub_holder = n.advertise<visualization_msgs::Marker>("/visualization_marker", 10);
     marker_pub = &marker_pub_holder;
 
-    std::vector<RoomData> roomData;
+    RoomData roomData[25];
+    int roomDataSize = 0;
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
     bool creatingMap = false;
@@ -303,20 +304,21 @@ int main(int argc, char **argv)
         }
         data.room_visited = false;
 
-        roomData.push_back(data);
+        roomData[roomDataSize] = data;
+        roomDataSize++;
         numObjects += getObjSrv.response.objects.size();
     }
 
     bool rooms_done = false;
     while (!rooms_done)
     {
-        ROS_INFO_STREAM(NODE_NAME << "got " << roomData.size() << " rooms, with a total of " << numObjects << " objects. \n Type a number out of range to end it.\n");
+        ROS_INFO_STREAM(NODE_NAME << "got " << roomDataSize << " rooms, with a total of " << numObjects << " objects. \n Type a number out of range to end it.\n");
         for (RoomData workingRoom : roomData) {
             ROS_INFO_STREAM(workingRoom.name << " " << workingRoom.room_visited);
         }
         ROS_INFO_STREAM(NODE_NAME << "Ready to search rooms. In which should I search?");
 
-        for (int i = 0; i < roomData.size(); i++)
+        for (int i = 0; i < roomDataSize; i++)
         {
             std::cout << "(" << i << ") " << roomData[i].name << ", ";
         }
@@ -325,7 +327,7 @@ int main(int argc, char **argv)
         std::cin >> answer;
         int curRoomNum = (int)answer - 48;
 
-        if (curRoomNum > roomData.size()){
+        if (curRoomNum > roomDataSize){
             break;
         }
 
@@ -364,14 +366,15 @@ int main(int argc, char **argv)
         } // All objects in the room has been looked at, list the changed objects.
 
         curRoom.room_visited = true;
-        if (curRoomNum >= roomData.size()){
+        if (curRoomNum >= roomDataSize){
             rooms_done = true;
         }
     }
 
     ROS_INFO_STREAM("-------------------HEJ-------------");
 
-    for (RoomData workingRoom : roomData) {
+    for (int i = 0; i > roomDataSize; i++) {
+        auto workingRoom = roomData[i];
         ROS_INFO_STREAM(workingRoom.name);
         if (workingRoom.room_visited) {
             ROS_INFO_STREAM("---------------- Current Room : " << workingRoom.name << " -------------------------");
@@ -380,6 +383,8 @@ int main(int argc, char **argv)
             }
         }
     }
+
+    ROS_INFO_STREAM("HEJ 2");
 
     ObjectData * object_move_to_default;
     for (RoomData workingRoom : roomData) {

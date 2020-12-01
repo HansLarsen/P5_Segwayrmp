@@ -81,9 +81,9 @@ private:
 public:
 
     Markers(ros::NodeHandle *node){
-        marker_pub = node->advertise<visualization_msgs::Marker>("visualization_marker", 10 ,this);
+        marker_pub = node->advertise<visualization_msgs::Marker>("/visualization_marker", 10 ,this);
         service = node->advertiseService("rvizcommand",&Markers::command, this);
-        sub = node->subscribe("clicked_point", 1, &Markers::callback, this);
+        sub = node->subscribe("/clicked_point", 1, &Markers::callback, this);
 
     }
 

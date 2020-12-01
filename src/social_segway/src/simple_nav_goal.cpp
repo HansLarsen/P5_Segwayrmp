@@ -10,6 +10,7 @@ std::vector<geometry_msgs::PointStamped> my_points;
 
 void callback(const geometry_msgs::PointStamped::ConstPtr &point){
     my_points.push_back(*point);
+    ROS_INFO("GOT POINT!");
 }
 
 int main(int argc, char **argv)
@@ -17,21 +18,24 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "simple_navigation_goals");
     ros::NodeHandle node;
 
-    ros::Subscriber sub = node.subscribe("clicked_point", 1, callback);
+    ros::Subscriber sub = node.subscribe("/clicked_point", 1, callback);
     int working_index = 0;
 
     while (ros::ok()) {
         if (my_points.size() < 4) {
-            continue;
             ros::Duration(1.0).sleep();
+            ros::spinOnce();
+            ROS_INFO("Waiting cakes");
+            continue;
         }
 
         //tell the action client that we want to spin a thread by default
         MoveBaseClient ac("move_base", true);
 
         //wait for the action server to come up
-        while (!ac.waitForServer(ros::Duration(5.0)))
+        while (!ac.waitForServer(ros::Duration(5.0)) && ros::ok())
         {
+            ros::spinOnce();
             ROS_INFO("Waiting for the move_base action server to come up");
         }
 
