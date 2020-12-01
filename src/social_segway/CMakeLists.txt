@@ -194,6 +194,7 @@ target_link_libraries(simple_nav_goal
 catkin_install_python(PROGRAMS 
   scripts/socialist/socialist.py
   scripts/semantic_test.py
+  scripts/semantic_test2.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

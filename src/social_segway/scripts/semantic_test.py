@@ -21,13 +21,17 @@ def main():
     msgObj = Object()
     msgObj.type = "Furniture"
     msgObj.objectClass = "Sofa"
-    msgObj.transform.translation.x = 0
+    msgObj.transform.translation.x = 7
+    msgObj.transform.translation.y = -7
+    msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)
 
     msgObj = Object()
     msgObj.type = "Furniture"
     msgObj.objectClass = "Chair"
     msgObj.transform.translation.x = 2
+    msgObj.transform.translation.y = 4
+    msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)
 
     msgObj = Object()
@@ -35,6 +39,31 @@ def main():
     msgObj.objectClass = "Bottle"
     msgObj.transform.translation.x = 10
     msgObj.transform.translation.y = 10
+    msgObj.transform.translation.z = 0
+    msg.objects.append(msgObj)
+
+    msgObj = Object()
+    msgObj.type = "Item"
+    msgObj.objectClass = "Cup"
+    msgObj.transform.translation.x = 7.5
+    msgObj.transform.translation.y = -7.5
+    msgObj.transform.translation.z = 1
+    msg.objects.append(msgObj)
+
+    msgObj = Object()
+    msgObj.type = "Item"
+    msgObj.objectClass = "Plate"
+    msgObj.transform.translation.x = -10
+    msgObj.transform.translation.y = -10
+    msgObj.transform.translation.z = 1
+    msg.objects.append(msgObj)
+
+    msgObj = Object()
+    msgObj.type = "Furniture"
+    msgObj.objectClass = "Bed"
+    msgObj.transform.translation.x = -10
+    msgObj.transform.translation.y = -10
+    msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)
 
     msgObj = Object()
@@ -43,20 +72,6 @@ def main():
     msgObj.transform.translation.x = 0.5
     msgObj.transform.translation.y = -0.5
     msgObj.transform.translation.z = 1
-    msg.objects.append(msgObj)
-
-    msgObj = Object()
-    msgObj.type = "Item"
-    msgObj.objectClass = "Plate"
-    msgObj.transform.translation.x = -1
-    msgObj.transform.translation.y = -1
-    msg.objects.append(msgObj)
-
-    msgObj = Object()
-    msgObj.type = "Furniture"
-    msgObj.objectClass = "Bed"
-    msgObj.transform.translation.x = -10
-    msgObj.transform.translation.y = -10
     msg.objects.append(msgObj)
 
     print("publishing")

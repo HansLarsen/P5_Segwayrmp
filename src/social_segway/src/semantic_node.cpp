@@ -260,8 +260,23 @@ public:
 
     bool removeFurnitureById(int id)
     {
-        auto ele = getFurnitureElementById(id);
-        return removeElement(ele);
+        auto furnitureElement = getFurnitureElementById(id);
+        auto roomElement = furnitureElement->Parent();
+        XMLElement *itemElement = furnitureElement->FirstChildElement();
+
+        while (itemElement != NULL)
+        {
+            if (!strcmp(itemElement->Name(), "Item"))
+            {
+                //ROS_INFO("MOVING ITEM");
+                roomElement->InsertEndChild(itemElement);
+            }
+            itemElement = itemElement->NextSiblingElement();
+        }
+
+
+        //ROS_INFO_STREAM("Dat element: " << furnitureElement);
+        return removeElement(furnitureElement);
     }
 
     void resetMap()
@@ -353,7 +368,7 @@ public:
         if (itemEle == NULL || furnitureEle == NULL)
             return false;
 
-        std::cout << "insert: " << (bool)furnitureEle->InsertEndChild(itemEle) << "\n\n";
+        (bool)furnitureEle->InsertEndChild(itemEle);
         return true;
     }
 
@@ -611,17 +626,25 @@ class Semantic_node
 
             //ROS_INFO_STREAM("for loop");
             auto allObjects = map->getAllObjects();
-            //ROS_INFO_STREAM("allObjects.size(): " << allObjects.size());
+            ROS_INFO_STREAM("Detected object: " << detectedObject.objectClass);
+
+            /*for (auto object : allObjects)
+            {
+                ROS_INFO_STREAM("debug1: Object: " << object.objectClass);
+            }*/
+
             if (allObjects.size() == 0) // no objects yet, add first:
             {
                 //ROS_INFO_STREAM("no objects yet");
                 // add item to list
+                ROS_INFO_STREAM("Adding new item: " << detectedObject.objectClass);
                 detectedObject.id = idCounter;
                 idCounter++;
                 timesFound.push_back(1);
                 map->addObjectByPosition(detectedObject);
                 continue;
             }
+
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
             z1 = detectedObject.transform.translation.z;
@@ -635,12 +658,14 @@ class Semantic_node
 
                 distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
 
+                //ROS_INFO_STREAM("debug2: Objectd: " << object.objectClass << ", Distance: " << distance);
                 if (distance < allowedDeviation && detectedObject.objectClass == object.objectClass && detectedObject.type == object.type)
                 {
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
                     if (!mergeObjects(detectedObject, object))
-                        ROS_INFO_STREAM("Failed to merged item: " << detectedObject.objectClass);
+                    {}
+                        //ROS_warn_STREAM("Failed to merged item: " << detectedObject.objectClass);
                     break; //
                 }
             }
@@ -759,7 +784,7 @@ class Semantic_node
                 y2 = LooseObject.transform.translation.y;
                 z2 = LooseObject.transform.translation.z;
 
-                distance = std::hypot(x1 - x2, y1 - y2);
+                distance = std::hypot(x1 - x2,y1 - y2);
 
                 if (z2 > z1)
                 { // if higher
@@ -768,9 +793,9 @@ class Semantic_node
                     {
                         //ROS_INFO_STREAM("placeobjetonfurin");
                         if (map->placeObjectOnFurniture(LooseObject, Furniture))
-                            ROS_INFO_STREAM("Placed on top success");
+                            ROS_INFO_STREAM("Placed " << LooseObject.objectClass << " on " << Furniture.objectClass);
                         else
-                            ROS_ERROR_STREAM("failed to place item on furniture");
+                            ROS_ERROR_STREAM("Failed to place" << LooseObject.objectClass << " on " << LooseObject.objectClass);
                     }
                 }
             }
@@ -844,9 +869,9 @@ class Semantic_node
     bool mergeObjects(cameralauncher::Object newObject, cameralauncher::Object oldObject)
     { // the more times the object have been found the less importance will the new point have when merging
         // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
-        timesFound.at(oldObject.id)++;
+        timesFound.at(oldObject.id-1)++;
         int tf;
-        tf = timesFound.at(oldObject.id);
+        tf = timesFound.at(oldObject.id-1);
         x1 = newObject.transform.translation.x;
         y1 = newObject.transform.translation.y;
         z1 = newObject.transform.translation.z;
@@ -862,12 +887,26 @@ class Semantic_node
         if (compare)
         {
             if (oldObject.type == "Furniture")
-                changes_map->removeFurnitureById(oldObject.id);
+            {
+                //changes_map->removeFurnitureById(oldObject.id);
+                if (!changes_map->removeFurnitureById(oldObject.id))
+                {
+                    ROS_WARN_STREAM("Merging FAILED: " << oldObject.objectClass);
+                    return false;
+                }
+            }
             else if (oldObject.type == "Item")
-                changes_map->removeItemById(oldObject.id);
+            {
+                //changes_map->removeItemById(oldObject.id);
+                if (!changes_map->removeItemById(oldObject.id))
+                {
+                    ROS_WARN_STREAM("Merging FAILED: " << oldObject.objectClass);
+                    return false;
+                }
+            }
             else
             {
-                ROS_WARN_STREAM("Asked to remove invalid object type: " << oldObject.type);
+                ROS_WARN_STREAM("Asked to remove invalid object type: " << oldObject.type << ", class: " << oldObject.objectClass);
                 return false;
             }
             changes_map->addObjectByPosition(oldObject);
@@ -875,12 +914,28 @@ class Semantic_node
         else
         {
             if (oldObject.type == "Furniture")
-                map->removeFurnitureById(oldObject.id);
+            {
+                //map->removeFurnitureById(oldObject.id);
+                //std::cout << " removeFurnitureById: "<< map->removeFurnitureById(oldObject.id) << ", Furniture:"<< oldObject.objectClass << std::endl;
+                if (!map->removeFurnitureById(oldObject.id))
+                {
+                    ROS_WARN_STREAM("Merging FAILED: " << oldObject.objectClass);
+                    return false;
+                }
+            }
             else if (oldObject.type == "Item")
-                map->removeItemById(oldObject.id);
+            {
+                //map->removeItemById(oldObject.id);
+                //std::cout << " removeItemById: "<< map->removeItemById(oldObject.id) << ", Item:"<< oldObject.objectClass << std::endl;
+                if (!map->removeItemById(oldObject.id))
+                {
+                    ROS_WARN_STREAM("Merging FAILED: " << oldObject.objectClass);
+                    return false;
+                }
+            }
             else
             {
-                ROS_WARN_STREAM("Asked to remove invalid object type: " << oldObject.type);
+                ROS_WARN_STREAM("Asked to remove invalid object type: " << oldObject.type << ", class: " << oldObject.objectClass);
                 return false;
             }
             map->addObjectByPosition(oldObject);
@@ -1046,7 +1101,7 @@ public:
         getObjectsInRoomSrv = nh->advertiseService("get_objects_in_room", &Semantic_node::getObjectsInRoom_callback, this);
 
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
-        idCounter = 0;
+        idCounter = 1;
     }
 };
 
