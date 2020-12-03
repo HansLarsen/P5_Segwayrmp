@@ -42,7 +42,7 @@ obstacles_voxel_grid:
   unknown_threshold:     5
   mark_threshold:        0
   publish_voxel_map:     false
-  observation_sources: segway_point_cloud, segway_point_cloud2
+  observation_sources: segway_point_cloud segway_point_cloud2
   segway_point_cloud: {topic:                   camera_l/depth/color/points,
                        data_type:               PointCloud2,
                        expected_update_rate:    0.5,
