@@ -21,12 +21,12 @@ import tf2_geometry_msgs
 knownList = {24: "Item", 25: "Item", 26: "Item", 27: "Item", 28: "Item", 39: "Item", 40: "Item", 41: "Item", 42: "Item", 43: "Item", 44: "Item", 45: "Item", 46: "Item", 47: "Item", 48: "Item", 49: "Item", 50: "Item", 51: "Item", 52: "Item", 53: "Item", 54: "Item", 55: "Item", 56: "Furniture",
              57: "Furniture", 58: "Item", 59: "Furniture", 60: "Furniture", 61: "Furniture", 62: "Furniture", 63: "Item", 64: "Item", 65: "Item", 66: "Item", 68: "Item", 69: "Furniture", 70: "Item", 71: "Furniture", 73: "Item", 74: "Item", 75: "Item", 76: "Item", 78: "Item", 79: "Item"}
 
-number_of_cameras = 1
+number_of_cameras = 2
 camera_rotation = [cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE]
-camera_topics = ['/camera/color/image_raw', '/camera_r/color/image_raw']
-camera_depth_topics = ['/camera/aligned_depth_to_color/image_raw', '/camera_r/aligned_depth_to_color/image_raw']
-camera_baselink_names = ['camera_color_optical_frame', 'camera_r_color_optical_frame']
-camera_info = '/camera/aligned_depth_to_color/camera_info'
+camera_topics = ['/camera_l/color/image_raw', '/camera_r/color/image_raw']
+camera_depth_topics = ['/camera_l/aligned_depth_to_color/image_raw', '/camera_r/aligned_depth_to_color/image_raw']
+camera_baselink_names = ['camera_l_color_optical_frame', 'camera_r_color_optical_frame']
+camera_info = '/camera_l/aligned_depth_to_color/camera_info'
 
 
 def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
@@ -187,10 +187,10 @@ if __name__ == '__main__':
                 rospy.logerr("Short distance")
                 continue
 
-            newImage = cv2.rectangle(beforeYoloImg, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
+            #newImage = cv2.rectangle(beforeYoloImg, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
             #rospy.logwarn("got_this")
-            cv2.imshow("Cakesdatas", newImage)
-            cv2.waitKey(1)
+            #cv2.imshow("Cakesdatas", newImage)
+            #cv2.waitKey(1)
 
             metric_point_to_cam = depth_pixel_to_metric(
                 centerBox_z/1000.0, centerBox_y, centerBox_x, cam_info.K)
