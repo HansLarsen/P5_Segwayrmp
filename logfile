@@ -1,0 +1,208 @@
+[  0%] Built target sensor_msgs_generate_messages_cpp
+[  0%] Built target tf_generate_messages_lisp
+[  0%] Built target actionlib_msgs_generate_messages_lisp
+[  0%] Built target cameralauncher_generate_messages_lisp
+[  0%] Built target tf_generate_messages_py
+[  0%] Built target actionlib_msgs_generate_messages_nodejs
+[  0%] Built target cameralauncher_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_cpp
+[  0%] Built target nav_msgs_generate_messages_nodejs
+[  0%] Built target segway_rmp_generate_messages_lisp
+[  0%] Built target nav_msgs_generate_messages_lisp
+[  0%] Built target rosgraph_msgs_generate_messages_nodejs
+[  0%] Built target segway_rmp_generate_messages_py
+[  0%] Built target segway_rmp_generate_messages_cpp
+[  0%] Built target actionlib_msgs_generate_messages_py
+[  0%] Built target sensor_msgs_generate_messages_eus
+[  0%] Built target actionlib_msgs_generate_messages_cpp
+[  0%] Built target visualization_msgs_generate_messages_cpp
+[  0%] Built target roscpp_generate_messages_cpp
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_nodejs
+[  0%] Built target actionlib_generate_messages_nodejs
+[  0%] Built target sensor_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_py
+[  0%] Built target actionlib_msgs_generate_messages_eus
+[  0%] Built target std_srvs_generate_messages_lisp
+[  0%] Built target std_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_nodejs
+[  0%] Built target geometry_msgs_generate_messages_lisp
+[  0%] Built target cameralauncher_generate_messages_nodejs
+[  0%] Built target std_srvs_generate_messages_eus
+[  0%] Built target tf_generate_messages_cpp
+[  0%] Built target darknet_ros_msgs_generate_messages_eus
+[  0%] Built target rosgraph_msgs_generate_messages_cpp
+[  0%] Built target _social_segway_generate_messages_check_deps_GetRooms
+[  0%] Built target geometry_msgs_generate_messages_eus
+[  0%] Built target roscpp_generate_messages_lisp
+[  0%] Built target _social_segway_generate_messages_check_deps_GetObjectPosById
+[  0%] Built target _social_segway_generate_messages_check_deps_CheckObject
+[  0%] Built target tf_generate_messages_nodejs
+[  0%] Built target _social_segway_generate_messages_check_deps_GetObjectsInRoom
+[  0%] Built target roscpp_generate_messages_eus
+[  0%] Built target std_srvs_generate_messages_py
+[  0%] Built target tf_generate_messages_eus
+[  0%] Built target std_srvs_generate_messages_nodejs
+[  0%] Built target rosgraph_msgs_generate_messages_lisp
+[  0%] Built target std_msgs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_eus
+[  0%] Built target std_msgs_generate_messages_py
+[  0%] Built target sensor_msgs_generate_messages_nodejs
+[  0%] Built target rosgraph_msgs_generate_messages_eus
+[  0%] Built target cameralauncher_generate_messages_eus
+[  0%] Built target roscpp_generate_messages_nodejs
+[  0%] Built target sensor_msgs_generate_messages_py
+[  0%] Built target actionlib_generate_messages_cpp
+[  0%] Built target rosgraph_msgs_generate_messages_py
+[  0%] Built target actionlib_generate_messages_eus
+[  0%] Built target nav_msgs_generate_messages_eus
+[  0%] Built target actionlib_generate_messages_py
+[  0%] Built target tf2_msgs_generate_messages_eus
+[  0%] Built target nav_msgs_generate_messages_cpp
+[ 16%] Built target social_segway_generate_messages_py
+[ 16%] Built target tf2_msgs_generate_messages_nodejs
+[ 16%] Built target tf2_msgs_generate_messages_lisp
+[ 16%] Built target std_srvs_generate_messages_cpp
+[ 16%] Built target visualization_msgs_generate_messages_eus
+[ 16%] Built target visualization_msgs_generate_messages_lisp
+[ 16%] Built target visualization_msgs_generate_messages_nodejs
+[ 16%] Built target visualization_msgs_generate_messages_py
+[ 16%] Built target cameralauncher_generate_messages_cpp
+[ 16%] Built target darknet_ros_msgs_generate_messages_py
+[ 16%] Built target segway_rmp_generate_messages_nodejs
+[ 16%] Built target nav_msgs_generate_messages_py
+[ 16%] Built target darknet_ros_msgs_generate_messages_cpp
+[ 16%] Built target darknet_ros_msgs_generate_messages_lisp
+[ 16%] Built target darknet_ros_msgs_generate_messages_nodejs
+[ 16%] Built target segway_rmp_generate_messages_eus
+[ 16%] Built target roscpp_generate_messages_py
+[ 16%] Built target actionlib_generate_messages_lisp
+[ 43%] Built target social_segway_generate_messages_lisp
+[ 43%] Built target social_segway_generate_messages_nodejs
+[ 73%] Built target social_segway_generate_messages_eus
+[ 73%] Built target social_segway_generate_messages_cpp
+[ 76%] Linking CXX executable /home/hax/ros_ws/devel_isolated/social_segway/lib/social_segway/main_node_auto
+[ 76%] Built target social_segway_generate_messages
+[ 90%] Built target main_node
+[ 90%] Built target semantic_node
+[ 96%] Built target simple_nav_goal
+CMakeFiles/main_node_auto.dir/build.make:94: recipe for target '/home/hax/ros_ws/devel_isolated/social_segway/lib/social_segway/main_node_auto' failed
+CMakeFiles/Makefile2:954: recipe for target 'CMakeFiles/main_node_auto.dir/all' failed
+Makefile:138: recipe for target 'all' failed
+Base path: /home/hax/ros_ws
+Source space: /home/hax/ros_ws/src
+Build space: /home/hax/ros_ws/build_isolated
+Devel space: /home/hax/ros_ws/devel_isolated
+Install space: /home/hax/ros_ws/install_isolated
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~  traversing 49 packages in topological order:
+~~  - create_room
+~~  - darknet_ros_msgs
+~~  - cameralauncher
+~~  - ira_laser_tools
+~~  - nmea_msgs
+~~  - nmea_comms
+~~  - nmea_navsat_driver
+~~  - point_cloud_converter
+~~  - range_sensor_filters
+~~  - realsense_gazebo_plugin
+~~  - segway_assisted_teleop
+~~  - segway_bringup
+~~  - segway_description
+~~  - segway_gazebo
+~~  - segway_msgs
+~~  - segway_dashboard
+~~  - segway_navigation
+~~  - segway_navigation_apps
+~~  - segway_remote_teleop
+~~  - segway_ros
+~~  - segway_sensor_filters
+~~  - segway_sim_control
+~~  - segway_upstart
+~~  - segway_v3
+~~  - segway_v3_config
+~~  - segway_v3_desktop
+~~  - segway_v3_robot
+~~  - segway_v3_simulator
+~~  - segway_viz
+~~  - serial
+~~  - libsegwayrmp (plain cmake)
+~~  - segway_rmp
+~~  - si_utils
+~~  - social_segway_description
+~~  - tf2_simpub
+~~  - third_party_sensors
+~~  - ublox
+~~  - ublox_serialization
+~~  - ublox_msgs
+~~  - ublox_gps
+~~  - velodyne
+~~  - velodyne_laserscan
+~~  - velodyne_msgs
+~~  - velodyne_driver
+~~  - velodyne_pointcloud
+~~  - but_velodyne_proc
+~~  - xml_lib
+~~  - social_segway
+~~  - social_segway_gui
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Skipping package: 'create_room'
+Skipping package: 'darknet_ros_msgs'
+Skipping package: 'cameralauncher'
+Skipping package: 'ira_laser_tools'
+Skipping package: 'nmea_msgs'
+Skipping package: 'nmea_comms'
+Skipping package: 'nmea_navsat_driver'
+Skipping package: 'point_cloud_converter'
+Skipping package: 'range_sensor_filters'
+Skipping package: 'realsense_gazebo_plugin'
+Skipping package: 'segway_assisted_teleop'
+Skipping package: 'segway_bringup'
+Skipping package: 'segway_description'
+Skipping package: 'segway_gazebo'
+Skipping package: 'segway_msgs'
+Skipping package: 'segway_dashboard'
+Skipping package: 'segway_navigation'
+Skipping package: 'segway_navigation_apps'
+Skipping package: 'segway_remote_teleop'
+Skipping package: 'segway_ros'
+Skipping package: 'segway_sensor_filters'
+Skipping package: 'segway_sim_control'
+Skipping package: 'segway_upstart'
+Skipping package: 'segway_v3'
+Skipping package: 'segway_v3_config'
+Skipping package: 'segway_v3_desktop'
+Skipping package: 'segway_v3_robot'
+Skipping package: 'segway_v3_simulator'
+Skipping package: 'segway_viz'
+Skipping package: 'serial'
+Skipping package: 'libsegwayrmp'
+Skipping package: 'segway_rmp'
+Skipping package: 'si_utils'
+Skipping package: 'social_segway_description'
+Skipping package: 'tf2_simpub'
+Skipping package: 'third_party_sensors'
+Skipping package: 'ublox'
+Skipping package: 'ublox_serialization'
+Skipping package: 'ublox_msgs'
+Skipping package: 'ublox_gps'
+Skipping package: 'velodyne'
+Skipping package: 'velodyne_laserscan'
+Skipping package: 'velodyne_msgs'
+Skipping package: 'velodyne_driver'
+Skipping package: 'velodyne_pointcloud'
+Skipping package: 'but_velodyne_proc'
+Skipping package: 'xml_lib'
+
+==> Processing catkin package: 'social_segway'
+==> Building with env: '/home/hax/ros_ws/devel_isolated/xml_lib/env.sh'
+Makefile exists, skipping explicit cmake invocation...
+==> make cmake_check_build_system in '/home/hax/ros_ws/build_isolated/social_segway'
+==> make -j8 -l8 in '/home/hax/ros_ws/build_isolated/social_segway'
+<== Failed to process package 'social_segway': 
+  Command '['/home/hax/ros_ws/devel_isolated/xml_lib/env.sh', 'make', '-j8', '-l8']' returned non-zero exit status 2
+
+Reproduce this error by running:
+==> cd /home/hax/ros_ws/build_isolated/social_segway && /home/hax/ros_ws/devel_isolated/xml_lib/env.sh make -j8 -l8
+

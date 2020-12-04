@@ -1159,6 +1159,7 @@ public:
             for (auto object : allObjects)
             {
                 timesFound.push_back(1);
+                timesFound.push_back(1);
                 detectedTimeStamp.push_back(ros::Time(0));
             }
             //ROS_INFO_STREAM("Times found size at beginning"<< timesFound.size());
