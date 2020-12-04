@@ -1,0 +1,50 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/hax/ros_ws/devel_isolated/social_segway/include/**",
+                "/home/hax/ros_ws/devel_isolated/velodyne_pointcloud/include/**",
+                "/home/hax/ros_ws/devel_isolated/velodyne_driver/include/**",
+                "/home/hax/ros_ws/devel_isolated/velodyne_msgs/include/**",
+                "/home/hax/ros_ws/devel_isolated/velodyne_laserscan/include/**",
+                "/home/hax/ros_ws/devel_isolated/ublox_msgs/include/**",
+                "/home/hax/ros_ws/devel_isolated/segway_rmp/include/**",
+                "/home/hax/ros_ws/devel_isolated/segway_ros/include/**",
+                "/home/hax/ros_ws/devel_isolated/segway_msgs/include/**",
+                "/home/hax/ros_ws/devel_isolated/nmea_msgs/include/**",
+                "/home/hax/ros_ws/devel_isolated/ira_laser_tools/include/**",
+                "/home/hax/ros_ws/devel_isolated/cameralauncher/include/**",
+                "/home/hax/ros_ws/devel_isolated/darknet_ros_msgs/include/**",
+                "/home/hax/ros_ws/devel_isolated/create_room/include/**",
+                "/opt/ros/kinetic/include/**",
+                "/home/hax/ros_ws/devel_isolated/libsegwayrmp/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/segway_sensor_filters/but_velodyne/but_velodyne_proc/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/nmea_comms/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/segway_sensor_filters/range_sensor_filters/include/**",
+                "/home/hax/ros_ws/src/realsense_gazebo_plugin/include/**",
+                "/home/hax/ros_ws/src/segway_v3/segway_navigation/segway_assisted_teleop/include/**",
+                "/home/hax/ros_ws/src/serial/include/**",
+                "/home/hax/ros_ws/src/social_segway_description/include/**",
+                "/home/hax/ros_ws/src/tf2_simpub/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/ublox/ublox_gps/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/ublox/ublox_msgs/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/ublox/ublox_serialization/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/velodyne/velodyne_driver/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/velodyne/velodyne_laserscan/include/**",
+                "/home/hax/ros_ws/src/segway_v3_robot/third_party_sensors/velodyne/velodyne_pointcloud/include/**",
+                "/home/hax/ros_ws/src/xml_lib/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

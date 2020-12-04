@@ -869,9 +869,9 @@ class Semantic_node
     bool mergeObjects(cameralauncher::Object newObject, cameralauncher::Object oldObject)
     { // the more times the object have been found the less importance will the new point have when merging
         // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
-        timesFound.at(oldObject.id-1)++;
+        timesFound.at(oldObject.id)++;
         int tf;
-        tf = timesFound.at(oldObject.id-1);
+        tf = timesFound.at(oldObject.id);
         x1 = newObject.transform.translation.x;
         y1 = newObject.transform.translation.y;
         z1 = newObject.transform.translation.z;
@@ -1081,6 +1081,7 @@ public:
             auto allObjects = map->getAllObjects();
             for (auto object : allObjects)
             {
+                timesFound.push_back(1);
                 timesFound.push_back(1);
                 detectedTimeStamp.push_back(ros::Time(0));
             }
