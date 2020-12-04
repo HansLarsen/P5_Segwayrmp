@@ -85,8 +85,6 @@ Visualization Manager:
           Value: false
         base_link:
           Value: true
-        book:
-          Value: true
         bsa_link:
           Value: false
         camera_bottom_screw_frame:
@@ -99,16 +97,6 @@ Visualization Manager:
           Value: false
         camera_depth_optical_frame:
           Value: false
-        camera_l_aligned_depth_to_color_frame:
-          Value: true
-        camera_l_color_frame:
-          Value: true
-        camera_l_color_optical_frame:
-          Value: true
-        camera_l_depth_frame:
-          Value: true
-        camera_l_depth_optical_frame:
-          Value: true
         camera_l_link:
           Value: true
         camera_left_ir_frame:
@@ -119,28 +107,28 @@ Visualization Manager:
           Value: false
         camera_mount:
           Value: true
+        camera_r_aligned_depth_to_color_frame:
+          Value: true
+        camera_r_color_frame:
+          Value: true
+        camera_r_color_optical_frame:
+          Value: true
+        camera_r_depth_frame:
+          Value: true
+        camera_r_depth_optical_frame:
+          Value: true
         camera_r_link:
           Value: true
         camera_right_ir_frame:
           Value: false
         camera_right_ir_optical_frame:
           Value: false
-        cell phone:
-          Value: true
-        chair:
-          Value: true
-        diningtable:
-          Value: true
         front_caster_plate_link:
           Value: false
         front_laser_link:
           Value: false
         inertial_collision_link:
           Value: false
-        keyboard:
-          Value: true
-        laptop:
-          Value: true
         laser:
           Value: false
         laser_mount_link:
@@ -153,8 +141,6 @@ Visualization Manager:
           Value: false
         mcu_1_battery_link:
           Value: false
-        mouse:
-          Value: true
         odom:
           Value: false
         payload_link:
@@ -163,12 +149,8 @@ Visualization Manager:
           Value: false
         right_spacer_link:
           Value: false
-        scanmatcher_frame:
-          Value: true
         segway/base_link:
           Value: false
-        tvmonitor:
-          Value: true
         ui_box_link:
           Value: false
       Marker Scale: 1
@@ -221,38 +203,21 @@ Visualization Manager:
                         {}
               camera_mount:
                 camera_l_link:
-                  camera_l_aligned_depth_to_color_frame:
-                    camera_l_color_optical_frame:
-                      book:
-                        {}
-                      cell phone:
-                        {}
-                      chair:
-                        {}
-                      diningtable:
-                        {}
-                      keyboard:
-                        {}
-                      laptop:
-                        {}
-                      mouse:
-                        {}
-                      tvmonitor:
-                        {}
-                  camera_l_color_frame:
-                    {}
-                  camera_l_depth_frame:
-                    camera_l_depth_optical_frame:
-                      {}
-                camera_r_link:
                   {}
+                camera_r_link:
+                  camera_r_aligned_depth_to_color_frame:
+                    camera_r_color_optical_frame:
+                      {}
+                  camera_r_color_frame:
+                    {}
+                  camera_r_depth_frame:
+                    camera_r_depth_optical_frame:
+                      {}
               laser_mount_link:
                 laser:
                   {}
               segway/base_link:
                 {}
-          scanmatcher_frame:
-            {}
       Update Interval: 0
       Value: true
     - Class: rviz/Group
@@ -351,29 +316,9 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: true
           Value: false
-        - Acceleration properties:
-            Acc. vector alpha: 0.5
-            Acc. vector color: 85; 0; 255
-            Acc. vector scale: 0.0500000007
-            Derotate acceleration: false
-            Enable acceleration: true
-          Axes properties:
-            Axes scale: 1
-            Enable axes: true
-          Box properties:
-            Box alpha: 1
-            Box color: 85; 0; 255
-            Enable box: false
-            x_scale: 0.400000006
-            y_scale: 0.400000006
-            z_scale: 0.400000006
-          Class: rviz_imu_plugin/Imu
+        - Class: rviz_imu_plugin/Imu
           Enabled: true
           Name: Imu
-          Topic: /segway/feedback/um7_imu
-          Unreliable: false
-          Value: true
-          fixed_frame_orientation: true
       Enabled: true
       Name: Sensing
     - Class: rviz/Group
@@ -476,7 +421,7 @@ Visualization Manager:
           Topic: /move_base/DWAPlannerROS/local_plan
           Unreliable: false
           Value: true
-      Enabled: false
+      Enabled: true
       Name: Navigation
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
@@ -568,7 +513,7 @@ Visualization Manager:
       Marker Topic: /map_markers
       Name: MarkerArray
       Namespaces:
-        semantic_map: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true

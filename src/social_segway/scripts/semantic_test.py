@@ -67,11 +67,11 @@ def main():
     msg.objects.append(msgObj)
 
     msgObj = Object()
-    msgObj.type = "Item"
-    msgObj.objectClass = "Cup"
-    msgObj.transform.translation.x = 0.5
-    msgObj.transform.translation.y = -0.5
-    msgObj.transform.translation.z = 1
+    msgObj.type = "Furniture"
+    msgObj.objectClass = "Sofa"
+    msgObj.transform.translation.x = 7
+    msgObj.transform.translation.y = -7.2
+    msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)
 
     print("publishing")

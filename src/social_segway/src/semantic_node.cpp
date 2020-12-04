@@ -595,8 +595,8 @@ class Semantic_node
     std::vector<int> timesFound;
     std::vector<ros::Time> detectedTimeStamp;
     bool compare;
-    float allowedDeviation = 0.5; // just some value for testing purposes
-    float allowedDeviation2 = 1; // just some value for testing purposes
+    float allowedDeviation = 0.5; // merge deviation
+    float allowedDeviation2 = 1; // place on top deviation
     int idCounter;
     double distance;
     float x1, y1, z1, x2, y2, z2;
@@ -1069,6 +1069,7 @@ public:
     Semantic_node(ros::NodeHandle *nh)
     {
         nh->getParam("/semantic_node/compare", compare);
+        timesFound.push_back(1);
 
         if (compare)
         {

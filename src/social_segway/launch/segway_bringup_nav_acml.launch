@@ -58,7 +58,7 @@
      <!-- MAP SERVER -->
     <node name="loc_map_server" pkg="map_server" type="map_server" args="$(find social_segway)/map/my_map.yaml" output="screen" />
 	<!-- AMCL -->
-	<node pkg="acml" type="acml" name="acml" output="screen">
+	<node pkg="amcl" type="amcl" name="amcl" output="screen">
 		<!-- rosparam command="load" file="$(find segway_navigation_apps)/config/RMP_220/gmapping.yaml" / -->
 		<param name="initial_pose_x" type="double" value="0.5" />
 		<param name="initial_pose_y" type="double" value="0.5" />
