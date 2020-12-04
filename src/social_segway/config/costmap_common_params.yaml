@@ -35,6 +35,38 @@ obstacles_costmap2d:
                 obstacle_range:          5.5,
                 raytrace_range:          6.0}
 
+obstacles_voxel_grid:
+  origin_z:              0.0
+  z_resolution:          0.2
+  z_voxels:              10
+  unknown_threshold:     5
+  mark_threshold:        0
+  publish_voxel_map:     false
+  observation_sources: segway_point_cloud segway_point_cloud2
+  segway_point_cloud: {topic:                   camera_l/depth/color/points,
+                       data_type:               PointCloud2,
+                       expected_update_rate:    0.5,
+                       observation_persistence: 0.0,
+                       marking:                 true,
+                       clearing:                true,
+                       inf_is_valid:            false,
+                       min_obstacle_height:     0.0,
+                       max_obstacle_height:     2.0,
+                       obstacle_range:          5.5,
+                       raytrace_range:          6.0}
+
+  segway_point_cloud2: {topic:                  camera_r/depth/color/points,
+                       data_type:               PointCloud2,
+                       expected_update_rate:    0.5,
+                       observation_persistence: 0.0,
+                       marking:                 true,
+                       clearing:                true,
+                       inf_is_valid:            false,
+                       min_obstacle_height:     0.0,
+                       max_obstacle_height:     2.0,
+                       obstacle_range:          5.5,
+                       raytrace_range:          6.0}
+
 inflation:
   inflation_radius:           0.3  #default 0.5
   cost_scaling_factor:        10.0 #default 10.0

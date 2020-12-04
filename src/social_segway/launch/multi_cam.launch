@@ -16,6 +16,7 @@
       <arg name="tf_prefix"         		value="$(arg tf_prefix_camera1)"/>
       <arg name="initial_reset"         value="$(arg initial_reset)"/>
       <arg name="align_depth"           value="true"/>
+      <arg name="filters"               value="pointcloud"/>
     </include>
   </group>
 
@@ -25,6 +26,7 @@
       <arg name="tf_prefix"		          value="$(arg tf_prefix_camera2)"/>
       <arg name="initial_reset"         value="$(arg initial_reset)"/>
       <arg name="align_depth"           value="true"/>
+      <arg name="filters"               value="pointcloud"/>
     </include>
   </group>
 <!--

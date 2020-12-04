@@ -24,10 +24,9 @@ knownList = {24: "Item", 25: "Item", 26: "Item", 27: "Item", 28: "Item", 39: "It
 number_of_cameras = 2
 camera_rotation = [cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE]
 camera_topics = ['/camera_l/color/image_raw', '/camera_r/color/image_raw']
-camera_depth_topics = ['/camera_l/aligned_depth_to_color/image_raw',
-                       '/camera_r/aligned_depth_to_color/image_raw']
-camera_baselink_names = [
-    'camera_l_color_optical_frame', 'camera_r_color_optical_frame']
+camera_depth_topics = ['/camera_l/aligned_depth_to_color/image_raw', '/camera_r/aligned_depth_to_color/image_raw']
+camera_baselink_names = ['camera_l_color_optical_frame', 'camera_r_color_optical_frame']
+camera_info = '/camera_l/aligned_depth_to_color/camera_info'
 
 
 def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
@@ -37,6 +36,65 @@ def depth_pixel_to_metric(depth, pixel_x, pixel_y, intrinsics):
     z = depth
     return Vector3(x, y, z)
 
+def sorting_fun(value):
+    return value[2]
+
+def get_depth_pixel(scalingFactor, bounding_boxes, depthImageCv):
+
+    results = []
+    newImage = cv2.cvtColor(depthImageCv, cv2.COLOR_GRAY2BGR)
+
+    middleValue_x = 0
+    middleValue_y = 0
+
+    for x in range(5):
+        if x == 0:
+            #The middle point
+            centerBox_x = ((bounding_boxes.xmax-bounding_boxes.xmin)/2) + bounding_boxes.xmin
+            centerBox_y = ((bounding_boxes.ymax-bounding_boxes.ymin)/2) + bounding_boxes.ymin
+            middleValue_x = centerBox_x
+            middleValue_y = centerBox_y
+
+        elif x == 1:
+            #Upper left point
+            centerBox_x = ((bounding_boxes.xmax-bounding_boxes.xmin)/4) + bounding_boxes.xmin
+            centerBox_y = ((bounding_boxes.ymax-bounding_boxes.ymin)/4) + bounding_boxes.ymin
+        elif x == 2:
+            #Upper right point
+            centerBox_x = int( ((bounding_boxes.xmax-bounding_boxes.xmin)*0.75) + bounding_boxes.xmin )
+            centerBox_y = ((bounding_boxes.ymax-bounding_boxes.ymin)/4) + bounding_boxes.ymin
+        elif x == 3:
+            #bottom left point
+            centerBox_x = ((bounding_boxes.xmax-bounding_boxes.xmin)/4) + bounding_boxes.xmin
+            centerBox_y = int( ((bounding_boxes.ymax-bounding_boxes.ymin)*0.75) + bounding_boxes.ymin )
+        else:
+            #bottom right point
+            centerBox_x = int( ((bounding_boxes.xmax-bounding_boxes.xmin)*0.75) + bounding_boxes.xmin )
+            centerBox_y = int( ((bounding_boxes.ymax-bounding_boxes.ymin)*0.75) + bounding_boxes.ymin )
+
+        centerBox_x = int(centerBox_x*scalingFactor[1])
+        centerBox_y = int(centerBox_y*scalingFactor[0])
+
+        if camera_rotation[current_camera_index] == cv2.ROTATE_90_CLOCKWISE:
+            centerBox_x = depthImageCv.shape[0] - centerBox_x
+        elif camera_rotation[current_camera_index] == cv2.ROTATE_90_COUNTERCLOCKWISE:
+            centerBox_y = depthImageCv.shape[1] - centerBox_y
+        else:
+            rospy.logerr("Invalid rotation")
+            continue
+
+        # Den her er bagvendt fordi det er row,column altsaa y,x.
+        results.append((centerBox_x, centerBox_y, depthImageCv[centerBox_x, centerBox_y] )) 
+
+    results.sort(key=sorting_fun)
+    #rospy.loginfo(results)
+
+    for result in results:
+        if result[2] != 0:
+            #rospy.loginfo(result)
+            return result
+
+    return results[0]
 
 if __name__ == '__main__':
 
@@ -50,8 +108,7 @@ if __name__ == '__main__':
     current_camera_index = 0
 
     rospy.loginfo("Waiting for Camera Info")
-    cam_info = rospy.wait_for_message(
-        '/camera_l/aligned_depth_to_color/camera_info', CameraInfo)
+    cam_info = rospy.wait_for_message(camera_info, CameraInfo)
     bridge = CvBridge()
 
     transform_broadcaster = tf2_ros.TransformBroadcaster()
@@ -63,17 +120,8 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         rospy.loginfo("Waiting for Camera RGB {}".format(current_camera_index))
 
-        rgb_image = rospy.wait_for_message(
-            camera_topics[current_camera_index], Image)
-        depth_image = rospy.wait_for_message(
-            camera_depth_topics[current_camera_index], Image)
-
-        #workingTime = rospy.Time(0)
-        # try:
-        #   trans = tfBuffer.lookup_transform(camera_baselink_names[current_camera_index], "camera_l_link", workingTime)
-        # except:
-        #   print "could not look up transform"
-        #  continue
+        rgb_image = rospy.wait_for_message(camera_topics[current_camera_index], Image)
+        depth_image = rospy.wait_for_message(camera_depth_topics[current_camera_index], Image)
 
         rospy.loginfo("Done waiting")
         rospy.loginfo(current_camera_index)
@@ -131,42 +179,18 @@ if __name__ == '__main__':
             centerBox_y = 0.0
             centerBox_z = 0.0
 
-            centerBox_x = (
-                (msg.bounding_boxes[i].xmax-msg.bounding_boxes[i].xmin)/2) + msg.bounding_boxes[i].xmin
-            centerBox_y = (
-                (msg.bounding_boxes[i].ymax-msg.bounding_boxes[i].ymin)/2) + msg.bounding_boxes[i].ymin
+            scalingFactor = (float(depthImageCv.shape[0])/float(beforeYoloImg.shape[0]), float(depthImageCv.shape[1])/float(beforeYoloImg.shape[1]))
 
-            scalingFactor = (float(depthImageCv.shape[0])/float(beforeYoloImg.shape[0]), float(
-                depthImageCv.shape[1])/float(beforeYoloImg.shape[1]))
-
-            centerBox_x = int(centerBox_x*scalingFactor[1])
-            centerBox_y = int(centerBox_y*scalingFactor[0])
-
-            newImage = cv2.cvtColor(depthImageCv, cv2.COLOR_GRAY2BGR)
-
-            if camera_rotation[current_camera_index] == cv2.ROTATE_90_CLOCKWISE:
-                centerBox_x = depthImageCv.shape[0] - centerBox_x
-
-            elif camera_rotation[current_camera_index] == cv2.ROTATE_90_COUNTERCLOCKWISE:
-                centerBox_y = depthImageCv.shape[1] - centerBox_y
-            else:
-                rospy.logerr("Invalid rotation")
-                continue
-
-            # Den her er bagvendt fordi det er row,column altsaa y,x.
-            centerBox_z = depthImageCv[centerBox_x, centerBox_y]
-            # rospy.logerr("_____________z distance is_______________")
-            # rospy.logerr(centerBox_z)
+            (centerBox_x, centerBox_y, centerBox_z) = get_depth_pixel(scalingFactor, msg.bounding_boxes[i], depthImageCv)
 
             if centerBox_z < 1.0:
                 rospy.logerr("Short distance")
                 continue
 
-            #newImage = cv2.rectangle(newImage, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
-            #newImage = cv2.resize(newImage, (newImage.shape[1] / 2, newImage.shape[0] / 2) )
+            #newImage = cv2.rectangle(beforeYoloImg, (centerBox_y-10, centerBox_x-10), (centerBox_y+10, centerBox_x+10), (25000, 25000, 25000), 10)
             #rospy.logwarn("got_this")
             #cv2.imshow("Cakesdatas", newImage)
-            # cv2.waitKey(1)
+            #cv2.waitKey(1)
 
             metric_point_to_cam = depth_pixel_to_metric(
                 centerBox_z/1000.0, centerBox_y, centerBox_x, cam_info.K)
