@@ -1,5 +1,4 @@
 #include <ros/ros.h>
-#include <actionlib/client/simple_action_client.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <cameralauncher/Object.h>
 #include <cameralauncher/ObjectList.h>
@@ -17,10 +16,20 @@
 #include <geometry_msgs/Twist.h>
 #include <boost/algorithm/string.hpp>
 
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include "geometry_msgs/PointStamped.h"
+#include "geometry_msgs/TransformStamped.h"
+#include <vector>
+#include <tf2_ros/transform_listener.h>
+#include <actionlib/client/simple_action_client.h>
+
 #define NODE_NAME "[Main_node]: "
 #define MAX_OBJECT_DISTANCE 2.0
 #define DEGREES_TO_RADIANS 0.01745329
 #define RADIANS_TO_DEGREES 57.2957878
+
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 ros::Publisher * marker_pub; 
 
@@ -180,7 +189,7 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     float distance = distanceBetweenTransforms(robotTransform.transform, object.transform);
     if (distance > MAX_OBJECT_DISTANCE)
     {
-        ROS_INFO_STREAM(NODE_NAME << "Please drive closer to" << object.objectClass << ", distance: " << distance);
+        ROS_INFO_STREAM("Please drive closer to object, distance: " << distance);
         return false;
     }
 
@@ -252,6 +261,61 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     return true;
 }
 
+bool check_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
+    geometry_msgs::TransformStamped robotTransform;
+    try
+    {
+        robotTransform = tfBuffer->lookupTransform("map", "base_link", ros::Time(0), ros::Duration(0.5));
+    }
+    catch (tf2::TransformException &ex)
+    {
+        ROS_WARN("%s", ex.what());
+        return false;
+    }
+    //ROS_INFO_STREAM(robotTransform);
+    //ROS_INFO_STREAM(object.transform);
+
+    float distance = distanceBetweenTransforms(robotTransform.transform, object.transform);
+    if (distance < MAX_OBJECT_DISTANCE)
+    {
+        //ROS_INFO_STREAM("Please drive closer to object, distance: " << distance);
+        return true;
+    }
+
+    visualization_msgs::Marker marker = visualization_msgs::Marker();
+    marker.header.frame_id = "map";
+    marker.header.stamp = ros::Time();
+    marker.ns = "main_node";
+    marker.id = 2;
+    marker.type = visualization_msgs::Marker::ARROW;
+    marker.action = visualization_msgs::Marker::ADD;
+    geometry_msgs::Point pointZero;
+    pointZero.x = object.transform.translation.x;
+    pointZero.y = object.transform.translation.y;
+    pointZero.z = 0;
+    marker.points.push_back(pointZero);
+
+    geometry_msgs::Point pointEnd;
+    pointEnd.x = robotTransform.transform.translation.x;
+    pointEnd.y = robotTransform.transform.translation.y;
+    pointEnd.z = 0;
+    marker.points.push_back(pointEnd);
+    
+    marker.scale.x = 0.05;
+    marker.scale.y = 0.07;
+    marker.color.a = 0.0;
+    marker.color.r = 0.5;
+    marker.color.g = 0.5;
+    marker.color.b = 1.0;
+    marker.lifetime = ros::Duration(10);
+    
+    marker_pub->publish(marker);
+
+    //object in range, and we can see it
+    
+    return false;
+}
+
 int main(int argc, char **argv)
 {
 
@@ -265,11 +329,25 @@ int main(int argc, char **argv)
     ros::Publisher marker_pub_holder = n.advertise<visualization_msgs::Marker>("/visualization_marker", 10);
     marker_pub = &marker_pub_holder;
 
+
+    //tell the action client that we want to spin a thread by default
+    MoveBaseClient ac("move_base_navi", true);
+    tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped transformStamped;
+    geometry_msgs::TransformStamped transformRobotGoal;
+
     RoomData roomData[25];
     int roomDataSize = 0;
     tf2_ros::Buffer tfBuffer;
     tf2_ros::TransformListener tfListener(tfBuffer);
     bool creatingMap = false;
+
+    //wait for the action server to come up
+    while (!ac.waitForServer(ros::Duration(5.0)) && ros::ok())
+    {
+        ROS_INFO("Waiting for the move_base action server to come up");
+        ros::spinOnce();
+    }
 
     //Startup, get list of all rooms, get list of objects in each room
     social_segway::GetRooms getRoomsMsg;
@@ -331,42 +409,91 @@ int main(int argc, char **argv)
             break;
         }
 
-        RoomData * curRoom = &roomData[curRoomNum];
+        auto curRoom = roomData[curRoomNum];
 
-        for (int j = 0; j < curRoom->objects.size(); j++)
+        for (auto object : curRoom.objects)
         {
-            ObjectData * object = &curRoom->objects[j];
-            pub_marker_single(*object, targetObjectPub);
+            pub_marker_single(object, targetObjectPub);
 
             bool reached = false;
             while (!reached)
             {
-                while (!check_angle_dist_to_target(&tfBuffer, *object)) {
+                geometry_msgs::TransformStamped transform;
+                
+                transform.header.stamp = ros::Time::now();
+                transform.header.frame_id = "map";
+                transform.child_frame_id = "goal";
+                transform.transform.translation = object.transform.translation;
+                transform.transform.rotation.w = 1;
+
+                br.sendTransform(transform);
+
+                try{
+                    transformStamped = tfBuffer.lookupTransform("odom", "goal", transform.header.stamp, ros::Duration(1.0));
+                    transformRobotGoal = tfBuffer.lookupTransform("base_link", "goal", transform.header.stamp, ros::Duration(1.0));
+                }
+                catch (tf2::TransformException &ex) {
+                    ROS_WARN("%s",ex.what());
+                    ros::Duration(1.0).sleep();
+                    continue;
+                }
+
+                move_base_msgs::MoveBaseGoal goal;
+
+                //we'll send a goal to the robot to move 1 meter forward
+                goal.target_pose.header.frame_id = transformStamped.header.frame_id;
+                goal.target_pose.header.stamp = ros::Time::now();
+
+                goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
+                goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
+                goal.target_pose.pose.position.z = transformStamped.transform.translation.z;
+                goal.target_pose.pose.orientation = transformRobotGoal.transform.rotation;
+
+                ROS_INFO("Sending goal");
+                ac.sendGoal(goal);
+
+                while (!check_dist_to_target(&tfBuffer, object)) {
+
+                    if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                        ROS_INFO("Hooray, got to the object.");
+                        reached = true;
+                        break;
+                    }
                     ros::spinOnce();
-                    ros::Duration(0.5).sleep();
+                    //ROS_INFO_STREAM(NODE_NAME << ac.getState());
+                    ros::Duration(1).sleep();
+                }
+
+                if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+                    ROS_INFO("Hooray, got to the object.");
+                    reached = true;
+                }
+                else {
+                    ROS_INFO("The movement failed.");
+                    ac.cancelAllGoals();
                 }
 
                 reached = true;
 
                 social_segway::CheckObject checkingObjectMSG;
-                checkingObjectMSG.request.id = object->id;
+                checkingObjectMSG.request.id = object.id;
 
                 getCheckObjectSrv.call(checkingObjectMSG);
 
                 if (checkingObjectMSG.response.success) {
-                    ROS_INFO_STREAM(NODE_NAME << object->objectClass <<" detect at id:" << object->id << " in room: " << curRoomNum << std::endl);
-                    object->object_at_default = true;
+                    ROS_INFO_STREAM(NODE_NAME << object.objectClass <<" detect at id:" << object.id << " in room: " << curRoomNum << std::endl);
+                    object.object_at_default = true;
                 }
                 else
                 {
-                    ROS_WARN_STREAM(NODE_NAME << object->objectClass << " not detect found at id:" << object->id << " in room: " << curRoomNum << std::endl);
-                    object->object_at_default = false;
+                    ROS_WARN_STREAM(NODE_NAME << object.objectClass << " not detect found at id:" << object.id << " in room: " << curRoomNum << std::endl);
+                    object.object_at_default = false;
                 }
                 ros::Duration(1.0).sleep();
             }
         } // All objects in the room has been looked at, list the changed objects.
 
-        curRoom->room_visited = true;
+        curRoom.room_visited = true;
         if (curRoomNum >= roomDataSize){
             rooms_done = true;
         }
@@ -374,9 +501,9 @@ int main(int argc, char **argv)
 
     ROS_INFO_STREAM("-------------------HEJ-------------");
 
-    for (int i = 0; i < roomDataSize; i++) {
+    for (int i = 0; i > roomDataSize; i++) {
         auto workingRoom = roomData[i];
-        ROS_INFO_STREAM(NODE_NAME << workingRoom.name << " is visisted: " << workingRoom.room_visited);
+        ROS_INFO_STREAM(workingRoom.name);
         if (workingRoom.room_visited) {
             ROS_INFO_STREAM("---------------- Current Room : " << workingRoom.name << " -------------------------");
             for (ObjectData workingObject : workingRoom.objects) {
@@ -388,23 +515,19 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("HEJ 2");
 
     ObjectData * object_move_to_default;
-    for (int i = 0; i < roomDataSize; i++) {
-        RoomData * workingRoom = &roomData[i];
-        for (int j = 0; j < workingRoom->objects.size(); j++) {
-            ObjectData * workingObject = &workingRoom->objects[j];
-            boost::to_lower(workingObject->type);
-            if (workingObject->type  == "furniture") {
+    for (RoomData workingRoom : roomData) {
+        for (ObjectData workingObject : workingRoom.objects) {
+            boost::to_lower(workingObject.type);
+            if (workingObject.type  == "furniture") {
                 continue;
             }
 
-            if (workingObject->object_at_default == false) {
-                object_move_to_default = workingObject;
+            if (workingObject.object_at_default == false) {
+                object_move_to_default = &workingObject;
                 break;
             }
         }
     }
-
-    ROS_INFO("HEJ3");
 
 
     social_segway::GetObjectPosById checkingObjectMSG;
@@ -442,8 +565,6 @@ int main(int argc, char **argv)
         ROS_INFO_STREAM(NODE_NAME << "Move me closer so that i may hit them with my sword!");
         ros::Duration(1).sleep();
     }
-
-    ROS_INFO_STREAM(NODE_NAME << "The object should be put down infront of me");
 
     /*
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> client("do_dishes", true); // true -> don't need ros::spin()
