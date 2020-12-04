@@ -274,7 +274,6 @@ public:
             itemElement = itemElement->NextSiblingElement();
         }
 
-
         //ROS_INFO_STREAM("Dat element: " << furnitureElement);
         return removeElement(furnitureElement);
     }
@@ -516,7 +515,7 @@ public:
     {
         XMLError error = doc->SaveFile(file_name.c_str());
         XMLCheckResult(error);
-        ROS_INFO_STREAM("Saved semantic map at: " << file_name.c_str());
+        //ROS_INFO_STREAM("Saved semantic map at: " << file_name.c_str());
     }
 };
 
@@ -596,7 +595,7 @@ class Semantic_node
     std::vector<ros::Time> detectedTimeStamp;
     bool compare;
     float allowedDeviation = 0.5; // merge deviation
-    float allowedDeviation2 = 1; // place on top deviation
+    float allowedDeviation2 = 1;  // place on top deviation
     int idCounter;
     double distance;
     float x1, y1, z1, x2, y2, z2;
@@ -664,8 +663,9 @@ class Semantic_node
                     ROS_INFO_STREAM("Merging item: " << detectedObject.objectClass);
                     merged = true;
                     if (!mergeObjects(detectedObject, object))
-                    {}
-                        //ROS_warn_STREAM("Failed to merged item: " << detectedObject.objectClass);
+                    {
+                    }
+                    //ROS_warn_STREAM("Failed to merged item: " << detectedObject.objectClass);
                     break; //
                 }
             }
@@ -689,7 +689,7 @@ class Semantic_node
         {
 
             if (detectedObject.objectClass == "diningtable") // ignore tables in phase 1 for testing purposes
-                continue;            
+                continue;
 
             x1 = detectedObject.transform.translation.x;
             y1 = detectedObject.transform.translation.y;
@@ -721,11 +721,42 @@ class Semantic_node
                         ROS_WARN_STREAM("Failed to merged item: " << detectedObject.objectClass);
                     break;
                 }
+                else if (distance > allowedDeviation && detectedObject.objectClass == changedObject.objectClass && detectedObject.type == changedObject.type)
+                {
+                    merged = true;
+                    detectedObject.id = changedObject.id;
+                    detectedTimeStamp.at(detectedObject.id) = ros::Time::now();
+                    if (detectedObject.type == "Item")
+                    {
+                        if (!changes_map->removeItemById(changedObject.id))
+                            ROS_WARN_STREAM("[semantic node] Found duplicate item but failed to replace: " << detectedObject.objectClass);
+                        else
+                        {
+                            ROS_WARN_STREAM("[semantic node] Found duplicate item and replaced: " << detectedObject.objectClass);
+                            // add item to list
+                            changes_map->addObjectByPosition(detectedObject);
+                        }
+                    }
+                    else if (detectedObject.type == "Furniture")
+                    {
+                        if (!changes_map->removeFurnitureById(changedObject.id))
+                            ROS_WARN_STREAM("[semantic node] Found duplicate furniture but failed to replace: " << detectedObject.objectClass);
+                        else
+                        {
+                            ROS_WARN_STREAM("[semantic node] Found duplicate furniture and replaced: " << detectedObject.objectClass);
+                            // add item to list
+                            changes_map->addObjectByPosition(detectedObject);
+                        }
+                    }
+                    else
+                        ROS_WARN_STREAM("[semantic node] Found duplicate unitentified type object: " << detectedObject.objectClass);
+                    break;
+                }
             }
 
             if (!merged)
             {
-                ROS_INFO_STREAM("[semantic node] object: "<< detectedObject.objectClass <<"not merged");
+                ROS_INFO_STREAM("[semantic node] object: " << detectedObject.objectClass << " not merged");
                 auto allObjects = map->getAllObjects();
 
                 if (allObjects.size() == 0) // no objects in map
@@ -739,7 +770,6 @@ class Semantic_node
                     x2 = object.transform.translation.x;
                     y2 = object.transform.translation.y;
                     z2 = object.transform.translation.z;
-
 
                     distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
 
@@ -758,7 +788,6 @@ class Semantic_node
                         ROS_INFO_STREAM("Found but not adding changed item: " << detectedObject.objectClass);
                         break;
                     }
-                    
                 }
             }
         }
@@ -784,7 +813,7 @@ class Semantic_node
                 y2 = LooseObject.transform.translation.y;
                 z2 = LooseObject.transform.translation.z;
 
-                distance = std::hypot(x1 - x2,y1 - y2);
+                distance = std::hypot(x1 - x2, y1 - y2);
 
                 if (z2 > z1)
                 { // if higher
@@ -797,6 +826,46 @@ class Semantic_node
                         else
                             ROS_ERROR_STREAM("Failed to place" << LooseObject.objectClass << " on " << LooseObject.objectClass);
                     }
+                }
+            }
+        }
+    }
+
+    void removeNotChanged()
+    {
+        auto allChangedObjects = changes_map->getAllObjects();
+        for (auto changedObject : allChangedObjects) // check if merge
+        {
+            x1 = changedObject.transform.translation.x;
+            y1 = changedObject.transform.translation.y;
+            z1 = changedObject.transform.translation.z;
+            
+            auto allObjects = map->getAllObjects();
+            for (auto object : allObjects)
+            {
+                x2 = object.transform.translation.x;
+                y2 = object.transform.translation.y;
+                z2 = object.transform.translation.z;
+                distance = std::hypot(std::hypot(x1 - x2, y1 - y2), z1 - z2);
+                if (distance < allowedDeviation && changedObject.id == object.id)
+                {
+                    if (changedObject.type == "Item")
+                    {
+                        if (!changes_map->removeItemById(changedObject.id))
+                            ROS_INFO_STREAM("Found not-changed item but failed to remove: " << changedObject.objectClass);
+                        else
+                            ROS_INFO_STREAM("Found not-changed item and removed: " << changedObject.objectClass);
+                    }
+                    else if (changedObject.type == "Furniture")
+                    {
+                        if (!changes_map->removeFurnitureById(changedObject.id))
+                            ROS_INFO_STREAM("Found not-changed furniture but failed to remove: " << changedObject.objectClass);
+                        else
+                            ROS_INFO_STREAM("Found not-changed furniture and removed: " << changedObject.objectClass);
+                    }
+                    else
+                        ROS_INFO_STREAM("Found not-changed unitentified type object: " << changedObject.objectClass);
+                    break;
                 }
             }
         }
@@ -864,11 +933,18 @@ class Semantic_node
     {
         checkOnTopAll();
         publishMarkers();
+        removeNotChanged();
+
+        if (compare)
+            changes_map->saveMap();
+        else
+            map->saveMap();
     }
 
     bool mergeObjects(cameralauncher::Object newObject, cameralauncher::Object oldObject)
     { // the more times the object have been found the less importance will the new point have when merging
         // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
+        //ROS_INFO_STREAM("size of times found at mearge:" << timesFound.size());
         timesFound.at(oldObject.id)++;
         int tf;
         tf = timesFound.at(oldObject.id);
@@ -1069,7 +1145,6 @@ public:
     Semantic_node(ros::NodeHandle *nh)
     {
         nh->getParam("/semantic_node/compare", compare);
-        timesFound.push_back(1);
 
         if (compare)
         {
@@ -1080,11 +1155,14 @@ public:
             ROS_INFO_STREAM("Semantic Node mode: Comparator");
 
             auto allObjects = map->getAllObjects();
+            //ROS_WARN_STREAM("size of object array " << sizeof(allObjects));
             for (auto object : allObjects)
             {
                 timesFound.push_back(1);
                 detectedTimeStamp.push_back(ros::Time(0));
             }
+            //ROS_INFO_STREAM("Times found size at beginning"<< timesFound.size());
+            //ROS_INFO_STREAM("detected time stamp size"<< detectedTimeStamp.size());
         }
         else
         {
@@ -1102,7 +1180,7 @@ public:
         getObjectsInRoomSrv = nh->advertiseService("get_objects_in_room", &Semantic_node::getObjectsInRoom_callback, this);
 
         timer = nh->createTimer(ros::Duration(1.0), &Semantic_node::OneSecTimerCallback, this);
-        idCounter = 1;
+        idCounter = 0;
     }
 };
 
