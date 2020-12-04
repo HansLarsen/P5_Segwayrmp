@@ -34,6 +34,14 @@ def main():
     msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)
 
+    msgObj = Object()
+    msgObj.type = "Furniture"
+    msgObj.objectClass = "Chair"
+    msgObj.transform.translation.x = 0
+    msgObj.transform.translation.y = 4.00000000000000000006
+    msgObj.transform.translation.z = 0
+    msg.objects.append(msgObj)
+
 
     print("publishing")
     pub.publish(msg)

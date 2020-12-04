@@ -595,8 +595,8 @@ class Semantic_node
     std::vector<int> timesFound;
     std::vector<ros::Time> detectedTimeStamp;
     bool compare;
-    float allowedDeviation = 0.5; // just some value for testing purposes
-    float allowedDeviation2 = 1; // just some value for testing purposes
+    float allowedDeviation = 0.5; // merge deviation
+    float allowedDeviation2 = 1; // place on top deviation
     int idCounter;
     double distance;
     float x1, y1, z1, x2, y2, z2;
@@ -869,9 +869,9 @@ class Semantic_node
     bool mergeObjects(cameralauncher::Object newObject, cameralauncher::Object oldObject)
     { // the more times the object have been found the less importance will the new point have when merging
         // this is so we dont just take the middle point everytime and so we dont have to save all points for k-means clustering or so
-        timesFound.at(oldObject.id-1)++;
+        timesFound.at(oldObject.id)++;
         int tf;
-        tf = timesFound.at(oldObject.id-1);
+        tf = timesFound.at(oldObject.id);
         x1 = newObject.transform.translation.x;
         y1 = newObject.transform.translation.y;
         z1 = newObject.transform.translation.z;
@@ -1069,6 +1069,7 @@ public:
     Semantic_node(ros::NodeHandle *nh)
     {
         nh->getParam("/semantic_node/compare", compare);
+        timesFound.push_back(1);
 
         if (compare)
         {
