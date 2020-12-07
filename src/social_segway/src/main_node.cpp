@@ -18,7 +18,7 @@
 #include <boost/algorithm/string.hpp>
 
 #define NODE_NAME "[Main_node]: "
-#define MAX_OBJECT_DISTANCE 2.0
+#define MAX_OBJECT_DISTANCE 1.0
 #define DEGREES_TO_RADIANS 0.01745329
 #define RADIANS_TO_DEGREES 57.2957878
 
@@ -380,7 +380,7 @@ int main(int argc, char **argv)
         if (workingRoom.room_visited) {
             ROS_INFO_STREAM("---------------- Current Room : " << workingRoom.name << " -------------------------");
             for (ObjectData workingObject : workingRoom.objects) {
-                ROS_INFO_STREAM(NODE_NAME << "Object at default: " << workingObject.object_at_default << " Objecttype: " << workingObject.type);
+                ROS_INFO_STREAM(NODE_NAME << "Object at default: " << workingObject.object_at_default << " Objecttype: " << workingObject.objectClass);
             }
         }
     }
@@ -388,8 +388,12 @@ int main(int argc, char **argv)
     ROS_INFO_STREAM("HEJ 2");
 
     ObjectData * object_move_to_default;
+    bool breakLoop = false;
     for (int i = 0; i < roomDataSize; i++) {
         RoomData * workingRoom = &roomData[i];
+        if (workingRoom->room_visited == false) {
+            continue;
+        }
         for (int j = 0; j < workingRoom->objects.size(); j++) {
             ObjectData * workingObject = &workingRoom->objects[j];
             boost::to_lower(workingObject->type);
@@ -399,8 +403,13 @@ int main(int argc, char **argv)
 
             if (workingObject->object_at_default == false) {
                 object_move_to_default = workingObject;
+                ROS_INFO_STREAM(NODE_NAME << "Moving this item to default " << workingObject->objectClass);
+                breakLoop = true;
                 break;
             }
+        }
+        if (breakLoop) {
+            break;
         }
     }
 
@@ -409,6 +418,7 @@ int main(int argc, char **argv)
 
     social_segway::GetObjectPosById checkingObjectMSG;
     checkingObjectMSG.request.id = object_move_to_default->id;
+    checkingObjectMSG.request.getChangedMap = true;
 
     if (getObjectPosById.call(checkingObjectMSG) == true) {
         if (checkingObjectMSG.response.success) {
@@ -417,27 +427,30 @@ int main(int argc, char **argv)
         }
         else
         {
-            ROS_ERROR_STREAM(NODE_NAME << "EPIC FAIL");
+            ROS_ERROR_STREAM(NODE_NAME << "service failed");
             return 0;
         }
 
     }
     else
     {
-        ROS_ERROR_STREAM(NODE_NAME << "EPIC FAIL");
+        ROS_ERROR_STREAM(NODE_NAME << "Service call return false");
         return 0;
     }
 
     ObjectData newTmp = *object_move_to_default;
     newTmp.transform.translation = checkingObjectMSG.response.translation;
 
+    pub_marker_single(newTmp, targetObjectPub);
+
     while(!check_angle_dist_to_target(&tfBuffer, newTmp)) {
         ROS_INFO_STREAM(NODE_NAME << "Move me closer so that i may hit them with my sword!");
         ros::Duration(1).sleep();
     }
 
-    ROS_INFO_STREAM(NODE_NAME << "Put the object infront of me ontop of me!");
+    ROS_INFO_STREAM(NODE_NAME << "Put the " << object_move_to_default->objectClass <<  " infront of me ontop of me!");
 
+    pub_marker_single(*object_move_to_default, targetObjectPub);
     while(!check_angle_dist_to_target(&tfBuffer, *object_move_to_default)) {
         ROS_INFO_STREAM(NODE_NAME << "Move me closer so that i may hit them with my sword!");
         ros::Duration(1).sleep();
