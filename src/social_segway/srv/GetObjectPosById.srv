@@ -1,6 +1,6 @@
 #returns a objects translation by id from either map
 int32 id
-bool getChangedMap=False
+bool getChangedMap
 ---
 geometry_msgs/Vector3 translation
 bool success 
