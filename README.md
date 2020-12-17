@@ -1,5 +1,9 @@
 # P5_Segwayrmp
 
+
+The packages produced by group 566 are: cameralauncher, create_room, social_segway, social_segway_description and social_segway_gui.
+
+
 This is a clone of the segway libaries and ros node by segwayrmp.
 
 
