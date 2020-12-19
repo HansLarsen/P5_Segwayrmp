@@ -18,7 +18,7 @@
 #include <boost/algorithm/string.hpp>
 
 #define NODE_NAME "[Main_node]: "
-#define MAX_OBJECT_DISTANCE 1.0
+#define MAX_OBJECT_DISTANCE 1.5
 #define DEGREES_TO_RADIANS 0.01745329
 #define RADIANS_TO_DEGREES 57.2957878
 
@@ -178,7 +178,11 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     //ROS_INFO_STREAM(object.transform);
 
     float distance = distanceBetweenTransforms(robotTransform.transform, object.transform);
-    if (distance > MAX_OBJECT_DISTANCE)
+    float maxDist = MAX_OBJECT_DISTANCE;
+    if(object.type == "Furniture")
+        maxDist += 0.5;
+
+    if (distance > maxDist)
     {
         ROS_INFO_STREAM(NODE_NAME << "Please drive closer to" << object.objectClass << ", distance: " << distance);
         return false;
@@ -208,13 +212,16 @@ bool check_angle_dist_to_target(tf2_ros::Buffer * tfBuffer, ObjectData object) {
     object_pos.setY(object.transform.translation.y);
     object_pos.setZ(0);
 
+    
     float angle = angleBetweenVectors(robot_x_axis, object_pos);
+    /*
     if (abs(angle) > 45.0 * DEGREES_TO_RADIANS)
     {
         ROS_INFO_STREAM(NODE_NAME << object.objectClass << " in range (" << distance << "), but not facing it yet (angle=" << angle * RADIANS_TO_DEGREES << " degrees)");
         ros::Duration(1.0).sleep();
         return false;
     }
+    */
 
     ROS_INFO_STREAM(NODE_NAME << "Got" << object.objectClass << " in sight, distance: " << distance << ", angle: " << angle * RADIANS_TO_DEGREES << "\n");
 
@@ -338,6 +345,10 @@ int main(int argc, char **argv)
             ObjectData * object = &curRoom->objects[j];
             pub_marker_single(*object, targetObjectPub);
 
+            ROS_INFO_STREAM("Drive to next object: " << object->objectClass);
+
+            ros::Duration(5.0).sleep();
+
             bool reached = false;
             while (!reached)
             {
@@ -349,20 +360,30 @@ int main(int argc, char **argv)
                 reached = true;
 
                 social_segway::CheckObject checkingObjectMSG;
-                checkingObjectMSG.request.id = object->id;
+                
 
-                getCheckObjectSrv.call(checkingObjectMSG);
+                int numTries = 0;
 
-                if (checkingObjectMSG.response.success) {
-                    ROS_INFO_STREAM(NODE_NAME << object->objectClass <<" detect at id:" << object->id << " in room: " << curRoomNum << std::endl);
-                    object->object_at_default = true;
-                }
-                else
+                while(numTries < 5)
                 {
-                    ROS_WARN_STREAM(NODE_NAME << object->objectClass << " not detect found at id:" << object->id << " in room: " << curRoomNum << std::endl);
-                    object->object_at_default = false;
+                    checkingObjectMSG.request.id = object->id;
+                    getCheckObjectSrv.call(checkingObjectMSG);
+
+                    if (checkingObjectMSG.response.success) {
+                        ROS_INFO_STREAM(NODE_NAME << object->objectClass <<" detect at id:" << object->id << " in room: " << curRoomNum << std::endl);
+                        object->object_at_default = true;
+                        break;
+                    }
+                    else
+                    {
+                        ROS_WARN_STREAM(NODE_NAME << object->objectClass << " not detect found at id:" << object->id << " in room: " << curRoomNum << std::endl);
+                        object->object_at_default = false;
+                        numTries++;
+                        ros::Duration(1.0).sleep();
+                    }
                 }
-                ros::Duration(1.0).sleep();
+                ros::Duration(5.0).sleep();
+
             }
         } // All objects in the room has been looked at, list the changed objects.
 
