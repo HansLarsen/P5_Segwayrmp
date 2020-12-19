@@ -1,5 +1,13 @@
 # P5_Segwayrmp
 
+
+The packages produced by group 566 are: cameralauncher, create_room, social_segway, social_segway_description and social_segway_gui.
+
+The package cameralauncher requires that darknet_ros is installed, it runs the detection node.
+The create_room creates a room xml file.
+The social_segway package contains the semantic node and the missionPlanner node (main node).
+
+
 This is a clone of the segway libaries and ros node by segwayrmp.
 
 
