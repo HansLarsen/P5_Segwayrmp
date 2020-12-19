@@ -21,7 +21,7 @@ def main():
     msgObj = Object()
     msgObj.type = "Furniture"
     msgObj.objectClass = "Chair"
-    msgObj.transform.translation.x = 0
+    msgObj.transform.translation.x = -1
     msgObj.transform.translation.y = 4
     msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)
@@ -37,7 +37,7 @@ def main():
     msgObj = Object()
     msgObj.type = "Furniture"
     msgObj.objectClass = "Chair"
-    msgObj.transform.translation.x = 0
+    msgObj.transform.translation.x = -1
     msgObj.transform.translation.y = 4.00000000000000000006
     msgObj.transform.translation.z = 0
     msg.objects.append(msgObj)

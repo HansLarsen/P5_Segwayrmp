@@ -933,10 +933,12 @@ class Semantic_node
     {
         checkOnTopAll();
         publishMarkers();
-        removeNotChanged();
 
         if (compare)
+        {
             changes_map->saveMap();
+            removeNotChanged();
+        }
         else
             map->saveMap();
     }
