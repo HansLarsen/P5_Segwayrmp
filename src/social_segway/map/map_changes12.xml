@@ -1,0 +1,24 @@
+<map>
+    <Room name="Unknown"/>
+    <Room name="kitchen"/>
+    <Room name="bathroom">
+        <Item>
+            <banana id="4">
+                <Transform>
+                    <Translation x="1.9773834979931793" y="0.22389865446994134" z="0.71379487593680202"/>
+                    <Rotation x="0.30008047635314333" y="0.86277610668120253" z="-0.010819731122856257" w="0.40675791524296506"/>
+                </Transform>
+            </banana>
+        </Item>
+    </Room>
+    <Room name="outdoors">
+        <Item>
+            <mouse id="0">
+                <Transform>
+                    <Translation x="1.7602138079642486" y="3.1587194427999838" z="0.71885690575008987"/>
+                    <Rotation x="-0.35969741824008128" y="0.84395945142753637" z="0.26834248879705702" w="0.29384092823572205"/>
+                </Transform>
+            </mouse>
+        </Item>
+    </Room>
+</map>

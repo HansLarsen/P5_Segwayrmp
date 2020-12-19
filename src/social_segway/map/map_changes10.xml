@@ -1,0 +1,15 @@
+<map>
+    <Room name="Unknown"/>
+    <Room name="kitchen"/>
+    <Room name="bathroom">
+        <Item>
+            <bottle id="6">
+                <Transform>
+                    <Translation x="2.0195014476776123" y="0.21957720816135406" z="0.88813102245330811"/>
+                    <Rotation x="0.3880603973488711" y="0.8265448399880061" z="-0.057273991344705677" w="0.40367365056040239"/>
+                </Transform>
+            </bottle>
+        </Item>
+    </Room>
+    <Room name="outdoors"/>
+</map>

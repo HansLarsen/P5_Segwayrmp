@@ -1,89 +1,56 @@
 <map>
-    <Room name="Unknown">
-    </Room>
+    <Room name="Unknown"/>
     <Room name="kitchen">
         <Furniture>
-            <diningtable id="9">
+            <Chair id="1">
                 <Transform>
-                    <Translation x="-2.0629558563232422" y="2.249805212020874" z="0.71628725528717041"/>
-                    <Rotation x="0.059677781228124588" y="-0.90441456945552146" z="-0.095039218445100659" w="0.4116313888256436"/>
+                    <Translation x="2" y="4" z="0"/>
+                    <Rotation x="0" y="0" z="0" w="0"/>
                 </Transform>
-            </diningtable>
-            <Item>
-                <laptop id="8">
-                    <Transform>
-                        <Translation x="-1.9928435087203979" y="2.3865938186645508" z="0.69621932506561279"/>
-                        <Rotation x="-0.89084119367326586" y="-0.19275181626604809" z="0.35823983762373313" w="-0.20226936115716948"/>
-                    </Transform>
-                </laptop>
-            </Item>
+            </Chair>
         </Furniture>
+        <Item>
+            <Bottle id="2">
+                <Transform>
+                    <Translation x="10" y="10" z="0"/>
+                    <Rotation x="0" y="0" z="0" w="0"/>
+                </Transform>
+            </Bottle>
+        </Item>
     </Room>
     <Room name="bathroom">
         <Furniture>
-            <chair id="0">
+            <Sofa id="0">
                 <Transform>
-                    <Translation x="2.1785004138946533" y="0.61367160081863403" z="0.47312295436859131"/>
-                    <Rotation x="-0.067429485453358695" y="0.91016788890207878" z="0.15134729625055152" w="0.37965990723719295"/>
+                    <Translation x="7" y="-7.0999999046325684" z="0"/>
+                    <Rotation x="0" y="0" z="0" w="0"/>
                 </Transform>
-            </chair>
-        </Furniture>
-        <Furniture>
-            <diningtable id="1">
-                <Transform>
-                    <Translation x="2.1555721759796143" y="0.60005587339401245" z="0.52422517538070679"/>
-                    <Rotation x="-0.067429485453358695" y="0.91016788890207878" z="0.15134729625055152" w="0.37965990723719295"/>
-                </Transform>
-            </diningtable>
+            </Sofa>
             <Item>
-                <remote id="2">
+                <Cup id="3">
                     <Transform>
-                        <Translation x="1.9415996590656559" y="-0.0075998623378783492" z="0.6688898119230795"/>
-                        <Rotation x="-0.8599085193270789" y="0.32388683029736626" z="-0.29625824794098038" w="-0.26054887142432337"/>
+                        <Translation x="7.5" y="-7.5" z="1"/>
+                        <Rotation x="0" y="0" z="0" w="0"/>
                     </Transform>
-                </remote>
-            </Item>
-            <Item>
-                <mouse id="7">
-                    <Transform>
-                        <Translation x="2.1415996590656559" y="0.4575998623378783492" z="0.6688898119230795"/>
-                        <Rotation x="-0.8599085193270789" y="0.32388683029736626" z="-0.29625824794098038" w="-0.26054887142432337"/>
-                    </Transform>
-                </mouse>
+                </Cup>
             </Item>
         </Furniture>
     </Room>
     <Room name="outdoors">
         <Furniture>
-            <diningtable id="3">
+            <Bed id="5">
                 <Transform>
-                    <Translation x="1.7488815784454346" y="2.9584264755249023" z="0.70426450252532959"/>
-                    <Rotation x="0.059677781228124588" y="-0.90441456945552146" z="-0.095039218445100659" w="0.4116313888256436"/>
+                    <Translation x="-10" y="-10" z="0"/>
+                    <Rotation x="0" y="0" z="0" w="0"/>
                 </Transform>
-            </diningtable>
+            </Bed>
             <Item>
-                <banana id="5">
+                <Plate id="4">
                     <Transform>
-                        <Translation x="1.7021049612657202" y="3.1671935777744666" z="0.71744171501170118"/>
-                        <Rotation x="-0.21098301805782169" y="0.88878046075729" z="0.20688896684726041" w="0.35036036420637401"/>
+                        <Translation x="-10" y="-10" z="1"/>
+                        <Rotation x="0" y="0" z="0" w="0"/>
                     </Transform>
-                </banana>
-            </Item>
-            <Item>
-                <bottle id="4">
-                    <Transform>
-                        <Translation x="2.0929322242736816" y="2.7681279182434082" z="0.77340018749237061"/>
-                        <Rotation x="-0.21098301805782169" y="0.88878046075729" z="0.20688896684726041" w="0.35036036420637401"/>
-                    </Transform>
-                </bottle>
-            </Item>
-            <Item>
-                <apple id="6">
-                    <Transform>
-                        <Translation x="1.7488815784454346" y="2.9584264755249023" z="0.72426450252532959"/>
-                        <Rotation x="-0.21098301805782169" y="0.88878046075729" z="0.20688896684726041" w="0.35036036420637401"/>
-                    </Transform>
-                </apple>
+                </Plate>
             </Item>
         </Furniture>
     </Room>

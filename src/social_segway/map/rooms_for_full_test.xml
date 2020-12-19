@@ -1,0 +1,12 @@
+<room name="kitchen">
+	<pos x="-2.634383" y="-1.248863" />
+	<pos x="0.561644" y="3.988175" />
+</room>
+<room name="bathroom">
+	<pos x="2.901000" y="-1.474009" />
+	<pos x="0.654632" y="1.628319" />
+</room>
+<room name="outdoors">
+	<pos x="3.157175" y="4.030290" />
+	<pos x="0.718180" y="1.724887" />
+</room>
